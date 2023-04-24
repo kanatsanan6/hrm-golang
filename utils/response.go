@@ -2,7 +2,7 @@ package utils
 
 import "github.com/gofiber/fiber/v2"
 
-func ErrorResponse(c *fiber.Ctx, status int, errorMsg string) error {
+func ErrorResponse(c *fiber.Ctx, status int, errorMsg interface{}) error {
 	return c.Status(status).JSON(fiber.Map{
 		"errors": errorMsg,
 	})
