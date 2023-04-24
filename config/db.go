@@ -17,7 +17,7 @@ func ConnectDatabase() (*gorm.DB, error) {
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		return nil, fmt.Errorf("fatal error connect database: %s", err)
+		return nil, err
 	}
 	return db, nil
 }

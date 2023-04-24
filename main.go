@@ -11,7 +11,7 @@ import (
 
 func init() {
 	if err := config.LoadEnv(); err != nil {
-		log.Fatal(err)
+		log.Fatalf("fatal error config file: %s", err)
 	}
 }
 
@@ -20,7 +20,7 @@ func main() {
 
 	db, err := config.ConnectDatabase()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("fatal error connect database: %s", err)
 	}
 
 	server.Queries = queries.NewQueries(db)
