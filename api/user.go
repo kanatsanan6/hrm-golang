@@ -41,9 +41,15 @@ func (s *Server) signUp(c *fiber.Ctx) error {
 	if err := c.BodyParser(&body); err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
+
+	hash, err := utils.Encrypt(body.Password)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
 	user, err := s.Queries.CreateUser(queries.CreateUserArgs{
 		Email:             body.Email,
-		EncryptedPassword: body.Password,
+		EncryptedPassword: hash,
 		FirstName:         body.FirstName,
 		LastName:          body.LastName,
 	})
