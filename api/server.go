@@ -4,10 +4,12 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/kanatsanan6/hrm/queries"
 )
 
 type Server struct {
-	router *fiber.App
+	router  *fiber.App
+	Queries *queries.Queries
 }
 
 func NewServer() *Server {
