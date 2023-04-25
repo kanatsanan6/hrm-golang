@@ -1,8 +1,6 @@
 package queries
 
-import (
-	"github.com/kanatsanan6/hrm/model"
-)
+import "github.com/kanatsanan6/hrm/model"
 
 type CreateUserArgs struct {
 	Email             string
