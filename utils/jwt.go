@@ -7,11 +7,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-type CustomClaims struct {
-	jwt.StandardClaims
-	Email string `json:"email"`
-}
-
 func GenerateJWT(email string) (string, jwt.MapClaims, error) {
 	claims := jwt.MapClaims{
 		"email": email,
