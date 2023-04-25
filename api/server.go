@@ -23,6 +23,8 @@ func NewServer() *Server {
 func (s *Server) setupRouter() {
 	app := fiber.New()
 
+	app.Post("/sign_up", s.signUp)
+
 	s.router = app
 }
 
