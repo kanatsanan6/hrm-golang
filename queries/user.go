@@ -1,6 +1,8 @@
 package queries
 
-import "github.com/kanatsanan6/hrm/model"
+import (
+	"github.com/kanatsanan6/hrm/model"
+)
 
 type CreateUserArgs struct {
 	Email             string
@@ -18,6 +20,14 @@ func (q *Queries) CreateUser(args CreateUserArgs) (model.User, error) {
 	}
 
 	if err := q.DB.Create(&user).Error; err != nil {
+		return model.User{}, err
+	}
+	return user, nil
+}
+
+func (q *Queries) FindUserByEmail(email string) (model.User, error) {
+	var user model.User
+	if err := q.DB.Where("Email = ?", email).First(&user).Error; err != nil {
 		return model.User{}, err
 	}
 	return user, nil
