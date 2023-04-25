@@ -22,3 +22,11 @@ func (q *Queries) CreateUser(args CreateUserArgs) (model.User, error) {
 	}
 	return user, nil
 }
+
+func (q *Queries) FindUserByEmail(email string) (model.User, error) {
+	var user model.User
+	if err := q.DB.Where("Email = ?", email).First(&user).Error; err != nil {
+		return model.User{}, err
+	}
+	return user, nil
+}

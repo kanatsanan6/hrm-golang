@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt"
 	"github.com/kanatsanan6/hrm/model"
 	"github.com/kanatsanan6/hrm/queries"
 	"github.com/kanatsanan6/hrm/utils"
@@ -62,4 +63,55 @@ func (s *Server) signUp(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
 	}
 	return utils.JsonResponse(c, fiber.StatusCreated, userResponse(user))
+}
+
+type SignInBody struct {
+	Email    string `json:"email" validate:"required"`
+	Password string `json:"password" validate:"required"`
+}
+
+type tokenResponse struct {
+	Token  string      `json:"token"`
+	Claims interface{} `json:"claims"`
+}
+
+func signInResponse(token string, claims jwt.MapClaims) tokenResponse {
+	return tokenResponse{
+		Token:  token,
+		Claims: claims,
+	}
+
+}
+
+func (s *Server) signIn(c *fiber.Ctx) error {
+	var body SignInBody
+	if err := c.BodyParser(&body); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	if err := utils.ValidateStruct(body); len(err) != 0 {
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, err)
+	}
+
+	user, err := s.Queries.FindUserByEmail(body.Email)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, "email or password is incorrect")
+	}
+
+	if matched := utils.ComparePasswords(user.EncryptedPassword, body.Password); !matched {
+		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, "email or password is incorrect")
+	}
+
+	signedToken, claims, err := utils.GenerateJWT(user.Email)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	response := signInResponse(signedToken, claims)
+
+	return utils.JsonResponse(c, fiber.StatusOK, response)
+}
+
+func (s *Server) Me(c *fiber.Ctx) error {
+	return utils.JsonResponse(c, fiber.StatusOK, "success")
 }
