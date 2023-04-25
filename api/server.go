@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
+
 	"github.com/kanatsanan6/hrm/queries"
 )
 
@@ -26,6 +27,9 @@ func (s *Server) setupRouter() {
 	app.Post("/sign_up", s.signUp)
 	app.Get("/sign_in", s.signIn)
 
+	app.Use(AuthMiddleware())
+
+	app.Get("/me", s.Me)
 	s.router = app
 }
 
