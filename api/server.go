@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/kanatsanan6/hrm/queries"
 )
 
@@ -23,12 +24,19 @@ func NewServer() *Server {
 func (s *Server) setupRouter() {
 	app := fiber.New()
 
-	app.Post("/sign_up", s.signUp)
-	app.Get("/sign_in", s.signIn)
+	app.Use(cors.New())
 
-	app.Use(AuthMiddleware())
+	v1 := app.Group("/api/v1")
 
-	app.Get("/me", s.Me)
+	v1.Post("/sign_up", s.signUp)
+	v1.Post("/sign_in", s.signIn)
+
+	v1.Use(AuthMiddleware())
+	v1.Use(MeMiddleware())
+
+	v1.Get("/me", s.me)
+	v1.Post("/company", s.createCompany)
+
 	s.router = app
 }
 

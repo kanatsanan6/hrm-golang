@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt"
 	"github.com/kanatsanan6/hrm/model"
 	"github.com/kanatsanan6/hrm/queries"
 	"github.com/kanatsanan6/hrm/utils"
@@ -71,14 +70,16 @@ type SignInBody struct {
 }
 
 type tokenResponse struct {
-	Token  string      `json:"token"`
-	Claims interface{} `json:"claims"`
+	CompanyID *uint  `json:"company_id"`
+	Token     string `json:"token"`
+	ExpiresAt int64  `json:"expires_at"`
 }
 
-func signInResponse(token string, claims jwt.MapClaims) tokenResponse {
+func signInResponse(token string, claims utils.CustomClaims, user model.User) tokenResponse {
 	return tokenResponse{
-		Token:  token,
-		Claims: claims,
+		CompanyID: user.CompanyID,
+		Token:     token,
+		ExpiresAt: claims.ExpiresAt,
 	}
 
 }
@@ -107,11 +108,18 @@ func (s *Server) signIn(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
 
-	response := signInResponse(signedToken, claims)
+	response := signInResponse(signedToken, claims, user)
 
 	return utils.JsonResponse(c, fiber.StatusOK, response)
 }
 
-func (s *Server) Me(c *fiber.Ctx) error {
-	return utils.JsonResponse(c, fiber.StatusOK, "success")
+func (s *Server) me(c *fiber.Ctx) error {
+	email := c.Locals("email").(string)
+
+	user, err := s.Queries.FindUserByEmail(email)
+	if err != nil {
+		utils.ErrorResponse(c, fiber.StatusNotFound, err.Error())
+	}
+
+	return utils.JsonResponse(c, fiber.StatusOK, userResponse(user))
 }
