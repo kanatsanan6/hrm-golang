@@ -16,14 +16,14 @@ func init() {
 }
 
 func main() {
-	server := api.NewServer()
-
 	db, err := config.ConnectDatabase()
 	if err != nil {
 		log.Fatalf("fatal error connect database: %s", err)
 	}
 
-	server.Queries = queries.NewQueries(db)
+	q := queries.NewQueries(db)
+
+	server := api.NewServer(q)
 
 	server.Start(viper.GetString("app.port"))
 }

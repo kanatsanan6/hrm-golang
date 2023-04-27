@@ -9,12 +9,12 @@ import (
 )
 
 type Server struct {
-	router  *fiber.App
-	Queries *queries.Queries
+	Router  *fiber.App
+	Queries queries.Queries
 }
 
-func NewServer() *Server {
-	server := &Server{}
+func NewServer(q queries.Queries) *Server {
+	server := &Server{Queries: q}
 
 	server.setupRouter()
 
@@ -37,10 +37,10 @@ func (s *Server) setupRouter() {
 	v1.Get("/me", s.me)
 	v1.Post("/company", s.createCompany)
 
-	s.router = app
+	s.Router = app
 }
 
 func (s *Server) Start(addr string) error {
 	port := fmt.Sprintf(":%s", addr)
-	return s.router.Listen(port)
+	return s.Router.Listen(port)
 }

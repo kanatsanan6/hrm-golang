@@ -9,15 +9,15 @@ import (
 	"github.com/kanatsanan6/hrm/utils"
 )
 
-type companyType struct {
+type CompanyType struct {
 	ID        uint      `json:"id"`
 	Name      string    `json:"name"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func companyResponse(company model.Company) companyType {
-	return companyType{
+func CompanyResponse(company model.Company) CompanyType {
+	return CompanyType{
 		ID:        company.ID,
 		Name:      company.Name,
 		CreatedAt: company.CreatedAt,
@@ -26,7 +26,7 @@ func companyResponse(company model.Company) companyType {
 }
 
 type CreateCompanyBody struct {
-	Name string `json:"name"`
+	Name string `json:"name" validate:"required"`
 }
 
 func (s *Server) createCompany(c *fiber.Ctx) error {
@@ -35,20 +35,25 @@ func (s *Server) createCompany(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
 
+	if err := utils.ValidateStruct(body); len(err) != 0 {
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, err)
+	}
+
 	email := c.Locals("email").(string)
 
 	user, err := s.Queries.FindUserByEmail(email)
 	if err != nil {
-		utils.ErrorResponse(c, fiber.StatusNotFound, err.Error())
+		return utils.ErrorResponse(c, fiber.StatusNotFound, err.Error())
 	}
 
 	company, err := s.Queries.CreateCompany(queries.CreateCompanyArgs{Name: body.Name})
 	if err != nil {
-		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
 	}
 
-	user.CompanyID = &company.ID
-	s.Queries.DB.Save(&user)
+	if err := s.Queries.UpdateUserCompanyID(user, company.ID); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
+	}
 
-	return utils.JsonResponse(c, fiber.StatusCreated, companyResponse(company))
+	return utils.JsonResponse(c, fiber.StatusCreated, CompanyResponse(company))
 }
