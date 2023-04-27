@@ -118,7 +118,7 @@ func (s *Server) me(c *fiber.Ctx) error {
 
 	user, err := s.Queries.FindUserByEmail(email)
 	if err != nil {
-		utils.ErrorResponse(c, fiber.StatusNotFound, err.Error())
+		return utils.ErrorResponse(c, fiber.StatusNotFound, err.Error())
 	}
 
 	return utils.JsonResponse(c, fiber.StatusOK, userResponse(user))
