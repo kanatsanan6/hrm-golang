@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -21,17 +20,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/valyala/fasthttp"
 )
-
-func AddAuth(t *testing.T, req *http.Request, email string) {
-	jwtToken, _, err := utils.GenerateJWT(email)
-
-	assert.NoError(t, err)
-	assert.NotEmpty(t, jwtToken)
-
-	authorization := fmt.Sprintf("Bearer %s", jwtToken)
-	req.Header.Set("Authorization", authorization)
-	req.Header.Set("Content-Type", "application/json")
-}
 
 func generateCompany() *model.Company {
 	return &model.Company{
