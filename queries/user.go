@@ -1,6 +1,8 @@
 package queries
 
-import "github.com/kanatsanan6/hrm/model"
+import (
+	"github.com/kanatsanan6/hrm/model"
+)
 
 type CreateUserArgs struct {
 	Email             string
@@ -47,7 +49,7 @@ func (q *SQLQueries) UpdateUserCompanyID(user model.User, id uint) error {
 }
 
 func (q *SQLQueries) UpdateUserForgetPasswordToken(user model.User, token string) error {
-	user.ResetPasswordToken = token
+	user.ResetPasswordToken = &token
 	return q.DB.Save(&user).Error
 }
 

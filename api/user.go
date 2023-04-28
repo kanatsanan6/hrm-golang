@@ -11,6 +11,7 @@ import (
 	"github.com/kanatsanan6/hrm/service"
 	"github.com/kanatsanan6/hrm/utils"
 	"github.com/sethvargo/go-password/password"
+	"github.com/spf13/viper"
 	"gopkg.in/gomail.v2"
 )
 
@@ -177,10 +178,16 @@ func (s *Server) inviteUser(c *fiber.Ctx) error {
 		utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
 	}
 
+	token := user.GenerateResetPasswordToken()
+	if err := s.Queries.UpdateUserForgetPasswordToken(user, token); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
+	}
+
+	// TODO: move this to worker
+	messsageBody := fmt.Sprintf("Please reset your password from this link: %s/reset-password/%s", "http://localhost:8081", token)
 	m := service.Mailer{}
 	message := gomail.NewMessage()
-	// TODO: Add reset password link once ready
-	message.SetBody("text/html", "Test Test")
+	message.SetBody("text/html", messsageBody)
 	m.Send(body.Email, "Please reset your password", message)
 
 	return utils.JsonResponse(c, fiber.StatusCreated, userResponse(user))
@@ -205,17 +212,17 @@ func (s *Server) forgetPassword(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusNotFound, err.Error())
 	}
 
-	token := utils.RandomString(12)
+	token := user.GenerateResetPasswordToken()
 	if err := s.Queries.UpdateUserForgetPasswordToken(user, token); err != nil {
 		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
 	}
 
-	messsageBody := fmt.Sprintf("Please reset your password from this link: %s/reset-password/%s", "http://localhost:8081", token)
-
+	// TODO: move this to worker
+	messsageBody := fmt.Sprintf("Please reset your password from this link: %s/reset-password/%s", viper.GetString("app.frontend_url"), token)
 	m := service.Mailer{}
 	message := gomail.NewMessage()
 	message.SetBody("text/html", messsageBody)
-	m.Send(body.Email, "Please reset your password", message)
+	m.Send(body.Email, "You are invited", message)
 
 	return utils.JsonResponse(c, fiber.StatusOK, userResponse(user))
 }

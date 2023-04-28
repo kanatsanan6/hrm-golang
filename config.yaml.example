@@ -1,6 +1,7 @@
 app:
   port: "3000"
   jwt_secret: "secret"
+  frontend_url: "localhost:8081"
 database:
   user: "postgres"
   password:
