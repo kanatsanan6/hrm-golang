@@ -146,19 +146,15 @@ func (s *Server) inviteUser(c *fiber.Ctx) error {
 	}
 
 	currentUser, err := s.Queries.FindUserByEmail(c.Locals("email").(string))
-
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "unauthorized")
 	}
 
 	user, _ := s.Queries.FindUserByEmail(body.Email)
-
-	fmt.Println(user)
 	if !reflect.DeepEqual(user, model.User{}) {
 		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, "user already exists")
 	}
 
-	// create user with password
 	password, err := password.Generate(64, 10, 10, false, false)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
@@ -188,4 +184,70 @@ func (s *Server) inviteUser(c *fiber.Ctx) error {
 	m.Send(body.Email, "Please reset your password", message)
 
 	return utils.JsonResponse(c, fiber.StatusCreated, userResponse(user))
+}
+
+type ForgetPasswordBody struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
+func (s *Server) forgetPassword(c *fiber.Ctx) error {
+	var body ForgetPasswordBody
+	if err := c.BodyParser(&body); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	if err := utils.ValidateStruct(body); len(err) != 0 {
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, err)
+	}
+
+	user, err := s.Queries.FindUserByEmail(body.Email)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusNotFound, err.Error())
+	}
+
+	token := utils.RandomString(12)
+	if err := s.Queries.UpdateUserForgetPasswordToken(user, token); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
+	}
+
+	messsageBody := fmt.Sprintf("Please reset your password from this link: %s/reset-password/%s", "http://localhost:8081", token)
+
+	m := service.Mailer{}
+	message := gomail.NewMessage()
+	message.SetBody("text/html", messsageBody)
+	m.Send(body.Email, "Please reset your password", message)
+
+	return utils.JsonResponse(c, fiber.StatusOK, userResponse(user))
+}
+
+type ResetPasswordBody struct {
+	Password string `json:"password" validate:"required"`
+	Token    string `json:"token" validate:"required"`
+}
+
+func (s *Server) resetPassword(c *fiber.Ctx) error {
+	var body ResetPasswordBody
+	if err := c.BodyParser(&body); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	if err := utils.ValidateStruct(body); len(err) != 0 {
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, err)
+	}
+
+	user, err := s.Queries.FindUserByForgetPasswordToken(body.Token)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "unauthorized")
+	}
+
+	hash, err := utils.Encrypt(body.Password)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	if err := s.Queries.UpdateUserPassword(user, hash); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
+	}
+
+	return utils.JsonResponse(c, fiber.StatusOK, userResponse(user))
 }

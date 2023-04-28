@@ -28,11 +28,12 @@ func (s *Server) setupRouter() {
 
 	v1 := app.Group("/api/v1")
 
+	v1.Post("/forget_password", s.forgetPassword)
+	v1.Put("/reset_password", s.resetPassword)
 	v1.Post("/sign_up", s.signUp)
 	v1.Post("/sign_in", s.signIn)
 
-	v1.Use(AuthMiddleware())
-	v1.Use(MeMiddleware())
+	v1.Use(AuthMiddleware(), MeMiddleware())
 
 	v1.Get("/me", s.me)
 	v1.Post("/company", s.createCompany)
