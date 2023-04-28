@@ -1,8 +1,6 @@
 package api
 
 import (
-	"fmt"
-
 	"github.com/gofiber/fiber/v2"
 	jwtware "github.com/gofiber/jwt/v3"
 	"github.com/golang-jwt/jwt/v4"
@@ -23,7 +21,6 @@ func MeMiddleware() fiber.Handler {
 		claims := data.Claims.(jwt.MapClaims)
 		email := claims["email"].(string)
 
-		fmt.Println(email)
 		c.Locals("email", email)
 		return c.Next()
 	}

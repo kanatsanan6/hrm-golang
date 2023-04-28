@@ -7,6 +7,7 @@ type CreateUserArgs struct {
 	EncryptedPassword string
 	FirstName         string
 	LastName          string
+	CompanyID         *uint
 }
 
 func (q *SQLQueries) CreateUser(args CreateUserArgs) (model.User, error) {
@@ -15,6 +16,7 @@ func (q *SQLQueries) CreateUser(args CreateUserArgs) (model.User, error) {
 		EncryptedPassword: args.EncryptedPassword,
 		FirstName:         args.FirstName,
 		LastName:          args.LastName,
+		CompanyID:         args.CompanyID,
 	}
 
 	if err := q.DB.Create(&user).Error; err != nil {

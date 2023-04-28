@@ -1,12 +1,17 @@
 package api
 
 import (
+	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/kanatsanan6/hrm/model"
 	"github.com/kanatsanan6/hrm/queries"
+	"github.com/kanatsanan6/hrm/service"
 	"github.com/kanatsanan6/hrm/utils"
+	"github.com/sethvargo/go-password/password"
+	"gopkg.in/gomail.v2"
 )
 
 type userType struct {
@@ -122,4 +127,65 @@ func (s *Server) me(c *fiber.Ctx) error {
 	}
 
 	return utils.JsonResponse(c, fiber.StatusOK, userResponse(user))
+}
+
+type InviteUserBody struct {
+	Email     string `json:"email" validate:"required,email"`
+	FirstName string `json:"first_name" validate:"required"`
+	LastName  string `json:"last_name" validate:"required"`
+}
+
+func (s *Server) inviteUser(c *fiber.Ctx) error {
+	var body InviteUserBody
+	if err := c.BodyParser(&body); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	if err := utils.ValidateStruct(body); len(err) != 0 {
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, err)
+	}
+
+	currentUser, err := s.Queries.FindUserByEmail(c.Locals("email").(string))
+
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "unauthorized")
+	}
+
+	user, _ := s.Queries.FindUserByEmail(body.Email)
+
+	fmt.Println(user)
+	if !reflect.DeepEqual(user, model.User{}) {
+		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, "user already exists")
+	}
+
+	// create user with password
+	password, err := password.Generate(64, 10, 10, false, false)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	hash, err := utils.Encrypt(password)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	user, err = s.Queries.CreateUser(queries.CreateUserArgs{
+		Email:             body.Email,
+		EncryptedPassword: hash,
+		FirstName:         body.FirstName,
+		LastName:          body.LastName,
+		CompanyID:         currentUser.CompanyID,
+	})
+
+	if err != nil {
+		utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
+	}
+
+	m := service.Mailer{}
+	message := gomail.NewMessage()
+	// TODO: Add reset password link once ready
+	message.SetBody("text/html", "Test Test")
+	m.Send(body.Email, "Please reset your password", message)
+
+	return utils.JsonResponse(c, fiber.StatusCreated, userResponse(user))
 }
