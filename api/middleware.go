@@ -1,16 +1,17 @@
 package api
 
 import (
+	"os"
+
 	"github.com/gofiber/fiber/v2"
 	jwtware "github.com/gofiber/jwt/v3"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/kanatsanan6/hrm/utils"
-	"github.com/spf13/viper"
 )
 
 func AuthMiddleware() fiber.Handler {
 	return jwtware.New(jwtware.Config{
-		SigningKey:   []byte(viper.GetString("app.jwt_secret")),
+		SigningKey:   []byte(os.Getenv("JWT_SECRET")),
 		ErrorHandler: authError,
 	})
 }

@@ -1,18 +1,9 @@
 package config
 
-import (
-	"strings"
-
-	"github.com/spf13/viper"
-)
+import "github.com/joho/godotenv"
 
 func LoadEnv() error {
-	viper.SetConfigFile("config.yaml")
-	viper.AddConfigPath(".")
-	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-
-	err := viper.ReadInConfig()
+	err := godotenv.Load()
 	if err != nil {
 		return err
 	}

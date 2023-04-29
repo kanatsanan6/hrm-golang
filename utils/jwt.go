@@ -1,11 +1,11 @@
 package utils
 
 import (
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
-	"github.com/spf13/viper"
 )
 
 type CustomClaims struct {
@@ -23,7 +23,7 @@ func GenerateJWT(email string) (string, CustomClaims, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	t, err := token.SignedString([]byte(viper.GetString("app.jwt_secret")))
+	t, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 
 	if err != nil {
 		return "", CustomClaims{}, err

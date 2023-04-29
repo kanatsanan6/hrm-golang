@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"time"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/kanatsanan6/hrm/service"
 	"github.com/kanatsanan6/hrm/utils"
 	"github.com/sethvargo/go-password/password"
-	"github.com/spf13/viper"
 	"gopkg.in/gomail.v2"
 )
 
@@ -193,7 +193,7 @@ func (s *Server) inviteUser(c *fiber.Ctx) error {
 	}
 
 	// TODO: move this to worker
-	messsageBody := fmt.Sprintf("Please reset your password from this link: %s/reset-password/%s", viper.GetString("app.frontend_url"), token)
+	messsageBody := fmt.Sprintf("Please reset your password from this link: %s/reset-password/%s", os.Getenv("FRONTEND_URL"), token)
 	m := service.Mailer{}
 	message := gomail.NewMessage()
 	message.SetBody("text/html", messsageBody)
@@ -227,7 +227,7 @@ func (s *Server) forgetPassword(c *fiber.Ctx) error {
 	}
 
 	// TODO: move this to worker
-	messsageBody := fmt.Sprintf("Please reset your password from this link: %s/reset-password/%s", viper.GetString("app.frontend_url"), token)
+	messsageBody := fmt.Sprintf("Please reset your password from this link: %s/reset-password/%s", os.Getenv("FRONTEND_URL"), token)
 	m := service.Mailer{}
 	message := gomail.NewMessage()
 	message.SetBody("text/html", messsageBody)

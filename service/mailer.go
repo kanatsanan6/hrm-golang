@@ -2,10 +2,10 @@ package service
 
 import (
 	"log"
+	"os"
 	"strings"
 
 	"github.com/kanatsanan6/hrm/config"
-	"github.com/spf13/viper"
 	"gopkg.in/gomail.v2"
 )
 
@@ -21,7 +21,7 @@ func removePlus(email string) string {
 }
 
 func (m *Mailer) Send(to string, subject string, message *gomail.Message) {
-	message.SetHeader("From", viper.GetString("mailer.username"))
+	message.SetHeader("From", os.Getenv("MAILER_USERNAME"))
 	message.SetHeader("To", removePlus(to))
 	message.SetHeader("Subject", subject)
 
