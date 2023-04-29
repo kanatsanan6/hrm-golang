@@ -20,6 +20,7 @@ type userType struct {
 	Email     string    `json:"email"`
 	FirstName string    `json:"first_name"`
 	LastName  string    `json:"last_name"`
+	CompanyID *uint     `json:"company_id"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -30,16 +31,18 @@ func userResponse(user model.User) userType {
 		Email:     user.Email,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
+		CompanyID: user.CompanyID,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 	}
 }
 
 type SignUpBody struct {
-	Email     string `json:"email" validate:"required,email"`
-	Password  string `json:"password" validate:"required,min=8"`
-	FirstName string `json:"first_name" validate:"required"`
-	LastName  string `json:"last_name" validate:"required"`
+	Email       string `json:"email" validate:"required,email"`
+	Password    string `json:"password" validate:"required,min=8"`
+	FirstName   string `json:"first_name" validate:"required"`
+	LastName    string `json:"last_name" validate:"required"`
+	CompanyName string `json:"company_name" validate:"required"`
 }
 
 func (s *Server) signUp(c *fiber.Ctx) error {
@@ -52,6 +55,11 @@ func (s *Server) signUp(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusBadRequest, err)
 	}
 
+	company, err := s.Queries.CreateCompany(queries.CreateCompanyArgs{Name: body.CompanyName})
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
+	}
+
 	hash, err := utils.Encrypt(body.Password)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
@@ -62,11 +70,12 @@ func (s *Server) signUp(c *fiber.Ctx) error {
 		EncryptedPassword: hash,
 		FirstName:         body.FirstName,
 		LastName:          body.LastName,
+		CompanyID:         &company.ID,
 	})
-
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
 	}
+
 	return utils.JsonResponse(c, fiber.StatusCreated, userResponse(user))
 }
 
@@ -184,11 +193,11 @@ func (s *Server) inviteUser(c *fiber.Ctx) error {
 	}
 
 	// TODO: move this to worker
-	messsageBody := fmt.Sprintf("Please reset your password from this link: %s/reset-password/%s", "http://localhost:8081", token)
+	messsageBody := fmt.Sprintf("Please reset your password from this link: %s/reset-password/%s", viper.GetString("app.frontend_url"), token)
 	m := service.Mailer{}
 	message := gomail.NewMessage()
 	message.SetBody("text/html", messsageBody)
-	m.Send(body.Email, "Please reset your password", message)
+	m.Send(body.Email, "[HRM] You are invited", message)
 
 	return utils.JsonResponse(c, fiber.StatusCreated, userResponse(user))
 }
@@ -222,7 +231,7 @@ func (s *Server) forgetPassword(c *fiber.Ctx) error {
 	m := service.Mailer{}
 	message := gomail.NewMessage()
 	message.SetBody("text/html", messsageBody)
-	m.Send(body.Email, "You are invited", message)
+	m.Send(body.Email, "[HRM] Reset Password", message)
 
 	return utils.JsonResponse(c, fiber.StatusOK, userResponse(user))
 }

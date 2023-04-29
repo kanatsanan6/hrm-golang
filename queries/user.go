@@ -29,7 +29,7 @@ func (q *SQLQueries) CreateUser(args CreateUserArgs) (model.User, error) {
 
 func (q *SQLQueries) FindUserByEmail(email string) (model.User, error) {
 	var user model.User
-	if err := q.DB.Where("Email = ?", email).First(&user).Error; err != nil {
+	if err := q.DB.Where("Email = ?", email).Preload("Company").First(&user).Error; err != nil {
 		return model.User{}, err
 	}
 	return user, nil

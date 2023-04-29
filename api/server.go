@@ -37,6 +37,7 @@ func (s *Server) setupRouter() {
 
 	v1.Get("/me", s.me)
 	v1.Post("/company", s.createCompany)
+	v1.Get("/company/users", s.getUsers)
 	v1.Post("/invite", s.inviteUser)
 
 	s.Router = app

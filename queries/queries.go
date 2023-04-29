@@ -13,6 +13,7 @@ type Queries interface {
 	UpdateUserForgetPasswordToken(user model.User, token string) error
 	UpdateUserPassword(user model.User, hash string) error
 	CreateCompany(args CreateCompanyArgs) (model.Company, error)
+	FindCompanyByID(id uint) (model.Company, error)
 }
 
 type SQLQueries struct {

@@ -65,6 +65,21 @@ func (mr *MockQueriesMockRecorder) CreateUser(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockQueries)(nil).CreateUser), arg0)
 }
 
+// FindCompanyByID mocks base method.
+func (m *MockQueries) FindCompanyByID(arg0 uint) (model.Company, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindCompanyByID", arg0)
+	ret0, _ := ret[0].(model.Company)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindCompanyByID indicates an expected call of FindCompanyByID.
+func (mr *MockQueriesMockRecorder) FindCompanyByID(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindCompanyByID", reflect.TypeOf((*MockQueries)(nil).FindCompanyByID), arg0)
+}
+
 // FindUserByEmail mocks base method.
 func (m *MockQueries) FindUserByEmail(arg0 string) (model.User, error) {
 	m.ctrl.T.Helper()
