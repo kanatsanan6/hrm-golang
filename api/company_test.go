@@ -186,5 +186,137 @@ func TestServer_createCompany(t *testing.T) {
 			tc.checkResponse(t, res)
 		})
 	}
+}
 
+func TestServer_getUsers(t *testing.T) {
+	email := utils.RandomEmail()
+	id := uint(utils.RandomNumber(1, 10))
+	user := &model.User{
+		ID:        uint(utils.RandomNumber(1, 10)),
+		Email:     email,
+		CompanyID: &id,
+	}
+	otherUser := &model.User{
+		ID:        uint(utils.RandomNumber(1, 10)),
+		Email:     email,
+		CompanyID: &id,
+	}
+	company := &model.Company{
+		ID:    id,
+		Name:  utils.RandomString(10),
+		Users: []model.User{*user, *otherUser},
+	}
+
+	testCases := []struct {
+		name          string
+		body          fiber.Map
+		setupAuth     func(t *testing.T, req *http.Request, email string)
+		buildStub     func(q *mock_queries.MockQueries)
+		checkResponse func(t *testing.T, res *http.Response)
+	}{
+		{
+			name:      "Unauthorized",
+			body:      fiber.Map{},
+			setupAuth: func(t *testing.T, req *http.Request, email string) {},
+			buildStub: func(q *mock_queries.MockQueries) {},
+			checkResponse: func(t *testing.T, res *http.Response) {
+				assert.Equal(t, fiber.StatusUnauthorized, res.StatusCode)
+			},
+		},
+		{
+			name: "User Not found",
+			body: fiber.Map{},
+			setupAuth: func(t *testing.T, req *http.Request, email string) {
+				AddAuth(t, req, email)
+			},
+			buildStub: func(q *mock_queries.MockQueries) {
+				q.EXPECT().
+					FindUserByEmail(gomock.Eq(email)).
+					Times(1).
+					Return(model.User{}, errors.New("not_found"))
+			},
+			checkResponse: func(t *testing.T, res *http.Response) {
+				assert.Equal(t, fiber.StatusNotFound, res.StatusCode)
+			},
+		},
+		{
+			name: "Company Not found",
+			body: fiber.Map{},
+			setupAuth: func(t *testing.T, req *http.Request, email string) {
+				AddAuth(t, req, email)
+			},
+			buildStub: func(q *mock_queries.MockQueries) {
+				q.EXPECT().
+					FindUserByEmail(gomock.Eq(email)).
+					Times(1).
+					Return(*user, nil)
+				q.EXPECT().
+					FindCompanyByID(gomock.Eq(*user.CompanyID)).
+					Times(1).
+					Return(model.Company{}, errors.New("not_found"))
+			},
+			checkResponse: func(t *testing.T, res *http.Response) {
+				assert.Equal(t, fiber.StatusNotFound, res.StatusCode)
+			},
+		},
+		{
+			name: "OK",
+			body: fiber.Map{},
+			setupAuth: func(t *testing.T, req *http.Request, email string) {
+				AddAuth(t, req, email)
+			},
+			buildStub: func(q *mock_queries.MockQueries) {
+				q.EXPECT().
+					FindUserByEmail(gomock.Eq(email)).
+					Times(1).
+					Return(*user, nil)
+				q.EXPECT().
+					FindCompanyByID(gomock.Eq(*user.CompanyID)).
+					Times(1).
+					Return(*company, nil)
+			},
+			checkResponse: func(t *testing.T, res *http.Response) {
+				var result struct {
+					Data []model.User `json:"data"`
+				}
+
+				body, err := io.ReadAll(res.Body)
+				assert.NoError(t, err)
+
+				err = json.Unmarshal(body, &result)
+				assert.NoError(t, err)
+				assert.Equal(t, fiber.StatusOK, res.StatusCode)
+
+				assert.Equal(t, 2, len(result.Data))
+				assert.Equal(t, user.ID, result.Data[0].ID)
+				assert.Equal(t, otherUser.ID, result.Data[1].ID)
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			q := mock_queries.NewMockQueries(ctrl)
+			tc.buildStub(q)
+
+			server := api.NewServer(q)
+			app := server.Router
+			ctx := app.AcquireCtx(&fasthttp.RequestCtx{})
+
+			ctx.Locals("email", email)
+
+			req := httptest.NewRequest("GET", "/api/v1/company/users", nil)
+
+			tc.setupAuth(t, req, email)
+
+			res, _ := server.Router.Test(req, -1)
+
+			tc.checkResponse(t, res)
+		})
+	}
 }

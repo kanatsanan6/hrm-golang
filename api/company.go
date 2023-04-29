@@ -57,3 +57,23 @@ func (s *Server) createCompany(c *fiber.Ctx) error {
 
 	return utils.JsonResponse(c, fiber.StatusCreated, CompanyResponse(company))
 }
+
+func (s *Server) getUsers(c *fiber.Ctx) error {
+	email := c.Locals("email").(string)
+
+	user, err := s.Queries.FindUserByEmail(email)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusNotFound, err.Error())
+	}
+
+	company, err := s.Queries.FindCompanyByID(*user.CompanyID)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusNotFound, err.Error())
+	}
+
+	users := []userType{}
+	for _, user := range company.Users {
+		users = append(users, userResponse(user))
+	}
+	return utils.JsonResponse(c, fiber.StatusOK, users)
+}

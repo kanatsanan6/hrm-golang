@@ -65,6 +65,21 @@ func (mr *MockQueriesMockRecorder) CreateUser(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockQueries)(nil).CreateUser), arg0)
 }
 
+// FindCompanyByID mocks base method.
+func (m *MockQueries) FindCompanyByID(arg0 uint) (model.Company, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindCompanyByID", arg0)
+	ret0, _ := ret[0].(model.Company)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindCompanyByID indicates an expected call of FindCompanyByID.
+func (mr *MockQueriesMockRecorder) FindCompanyByID(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindCompanyByID", reflect.TypeOf((*MockQueries)(nil).FindCompanyByID), arg0)
+}
+
 // FindUserByEmail mocks base method.
 func (m *MockQueries) FindUserByEmail(arg0 string) (model.User, error) {
 	m.ctrl.T.Helper()
@@ -80,6 +95,21 @@ func (mr *MockQueriesMockRecorder) FindUserByEmail(arg0 interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserByEmail", reflect.TypeOf((*MockQueries)(nil).FindUserByEmail), arg0)
 }
 
+// FindUserByForgetPasswordToken mocks base method.
+func (m *MockQueries) FindUserByForgetPasswordToken(arg0 string) (model.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindUserByForgetPasswordToken", arg0)
+	ret0, _ := ret[0].(model.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindUserByForgetPasswordToken indicates an expected call of FindUserByForgetPasswordToken.
+func (mr *MockQueriesMockRecorder) FindUserByForgetPasswordToken(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserByForgetPasswordToken", reflect.TypeOf((*MockQueries)(nil).FindUserByForgetPasswordToken), arg0)
+}
+
 // UpdateUserCompanyID mocks base method.
 func (m *MockQueries) UpdateUserCompanyID(arg0 model.User, arg1 uint) error {
 	m.ctrl.T.Helper()
@@ -92,4 +122,32 @@ func (m *MockQueries) UpdateUserCompanyID(arg0 model.User, arg1 uint) error {
 func (mr *MockQueriesMockRecorder) UpdateUserCompanyID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserCompanyID", reflect.TypeOf((*MockQueries)(nil).UpdateUserCompanyID), arg0, arg1)
+}
+
+// UpdateUserForgetPasswordToken mocks base method.
+func (m *MockQueries) UpdateUserForgetPasswordToken(arg0 model.User, arg1 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserForgetPasswordToken", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUserForgetPasswordToken indicates an expected call of UpdateUserForgetPasswordToken.
+func (mr *MockQueriesMockRecorder) UpdateUserForgetPasswordToken(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserForgetPasswordToken", reflect.TypeOf((*MockQueries)(nil).UpdateUserForgetPasswordToken), arg0, arg1)
+}
+
+// UpdateUserPassword mocks base method.
+func (m *MockQueries) UpdateUserPassword(arg0 model.User, arg1 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserPassword", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateUserPassword indicates an expected call of UpdateUserPassword.
+func (mr *MockQueriesMockRecorder) UpdateUserPassword(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserPassword", reflect.TypeOf((*MockQueries)(nil).UpdateUserPassword), arg0, arg1)
 }

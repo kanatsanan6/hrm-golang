@@ -21,6 +21,12 @@ func main() {
 		log.Fatalf("fatal error connect database: %s", err)
 	}
 
+	config.ConnectMailer(
+		viper.GetString("mailer.host"),
+		viper.GetString("mailer.username"),
+		viper.GetString("mailer.password"),
+	)
+
 	q := queries.NewQueries(db)
 
 	server := api.NewServer(q)

@@ -1,12 +1,18 @@
 package api
 
 import (
+	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/kanatsanan6/hrm/model"
 	"github.com/kanatsanan6/hrm/queries"
+	"github.com/kanatsanan6/hrm/service"
 	"github.com/kanatsanan6/hrm/utils"
+	"github.com/sethvargo/go-password/password"
+	"github.com/spf13/viper"
+	"gopkg.in/gomail.v2"
 )
 
 type userType struct {
@@ -14,6 +20,7 @@ type userType struct {
 	Email     string    `json:"email"`
 	FirstName string    `json:"first_name"`
 	LastName  string    `json:"last_name"`
+	CompanyID *uint     `json:"company_id"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -24,16 +31,18 @@ func userResponse(user model.User) userType {
 		Email:     user.Email,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
+		CompanyID: user.CompanyID,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 	}
 }
 
 type SignUpBody struct {
-	Email     string `json:"email" validate:"required,email"`
-	Password  string `json:"password" validate:"required,min=8"`
-	FirstName string `json:"first_name" validate:"required"`
-	LastName  string `json:"last_name" validate:"required"`
+	Email       string `json:"email" validate:"required,email"`
+	Password    string `json:"password" validate:"required,min=8"`
+	FirstName   string `json:"first_name" validate:"required"`
+	LastName    string `json:"last_name" validate:"required"`
+	CompanyName string `json:"company_name" validate:"required"`
 }
 
 func (s *Server) signUp(c *fiber.Ctx) error {
@@ -46,6 +55,11 @@ func (s *Server) signUp(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusBadRequest, err)
 	}
 
+	company, err := s.Queries.CreateCompany(queries.CreateCompanyArgs{Name: body.CompanyName})
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
+	}
+
 	hash, err := utils.Encrypt(body.Password)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
@@ -56,11 +70,12 @@ func (s *Server) signUp(c *fiber.Ctx) error {
 		EncryptedPassword: hash,
 		FirstName:         body.FirstName,
 		LastName:          body.LastName,
+		CompanyID:         &company.ID,
 	})
-
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
 	}
+
 	return utils.JsonResponse(c, fiber.StatusCreated, userResponse(user))
 }
 
@@ -119,6 +134,135 @@ func (s *Server) me(c *fiber.Ctx) error {
 	user, err := s.Queries.FindUserByEmail(email)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusNotFound, err.Error())
+	}
+
+	return utils.JsonResponse(c, fiber.StatusOK, userResponse(user))
+}
+
+type InviteUserBody struct {
+	Email     string `json:"email" validate:"required,email"`
+	FirstName string `json:"first_name" validate:"required"`
+	LastName  string `json:"last_name" validate:"required"`
+}
+
+func (s *Server) inviteUser(c *fiber.Ctx) error {
+	var body InviteUserBody
+	if err := c.BodyParser(&body); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	if err := utils.ValidateStruct(body); len(err) != 0 {
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, err)
+	}
+
+	currentUser, err := s.Queries.FindUserByEmail(c.Locals("email").(string))
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "unauthorized")
+	}
+
+	user, _ := s.Queries.FindUserByEmail(body.Email)
+	if !reflect.DeepEqual(user, model.User{}) {
+		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, "user already exists")
+	}
+
+	password, err := password.Generate(64, 10, 10, false, false)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	hash, err := utils.Encrypt(password)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	user, err = s.Queries.CreateUser(queries.CreateUserArgs{
+		Email:             body.Email,
+		EncryptedPassword: hash,
+		FirstName:         body.FirstName,
+		LastName:          body.LastName,
+		CompanyID:         currentUser.CompanyID,
+	})
+
+	if err != nil {
+		utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
+	}
+
+	token := user.GenerateResetPasswordToken()
+	if err := s.Queries.UpdateUserForgetPasswordToken(user, token); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
+	}
+
+	// TODO: move this to worker
+	messsageBody := fmt.Sprintf("Please reset your password from this link: %s/reset-password/%s", viper.GetString("app.frontend_url"), token)
+	m := service.Mailer{}
+	message := gomail.NewMessage()
+	message.SetBody("text/html", messsageBody)
+	m.Send(body.Email, "[HRM] You are invited", message)
+
+	return utils.JsonResponse(c, fiber.StatusCreated, userResponse(user))
+}
+
+type ForgetPasswordBody struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
+func (s *Server) forgetPassword(c *fiber.Ctx) error {
+	var body ForgetPasswordBody
+	if err := c.BodyParser(&body); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	if err := utils.ValidateStruct(body); len(err) != 0 {
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, err)
+	}
+
+	user, err := s.Queries.FindUserByEmail(body.Email)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusNotFound, err.Error())
+	}
+
+	token := user.GenerateResetPasswordToken()
+	if err := s.Queries.UpdateUserForgetPasswordToken(user, token); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
+	}
+
+	// TODO: move this to worker
+	messsageBody := fmt.Sprintf("Please reset your password from this link: %s/reset-password/%s", viper.GetString("app.frontend_url"), token)
+	m := service.Mailer{}
+	message := gomail.NewMessage()
+	message.SetBody("text/html", messsageBody)
+	m.Send(body.Email, "[HRM] Reset Password", message)
+
+	return utils.JsonResponse(c, fiber.StatusOK, userResponse(user))
+}
+
+type ResetPasswordBody struct {
+	Password string `json:"password" validate:"required"`
+	Token    string `json:"token" validate:"required"`
+}
+
+func (s *Server) resetPassword(c *fiber.Ctx) error {
+	var body ResetPasswordBody
+	if err := c.BodyParser(&body); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	if err := utils.ValidateStruct(body); len(err) != 0 {
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, err)
+	}
+
+	user, err := s.Queries.FindUserByForgetPasswordToken(body.Token)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "unauthorized")
+	}
+
+	hash, err := utils.Encrypt(body.Password)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	if err := s.Queries.UpdateUserPassword(user, hash); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
 	}
 
 	return utils.JsonResponse(c, fiber.StatusOK, userResponse(user))

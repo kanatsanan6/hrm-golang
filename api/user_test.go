@@ -19,10 +19,11 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func GenerateUser(hash string) *model.User {
+func GenerateUser(hash string, companyId *uint) *model.User {
 	return &model.User{
 		ID:                uint(utils.RandomNumber(1, 10)),
 		Email:             utils.RandomEmail(),
+		CompanyID:         companyId,
 		EncryptedPassword: hash,
 	}
 
@@ -33,6 +34,7 @@ func TestServer_signUp(t *testing.T) {
 	password := utils.RandomString(10)
 	firstName := utils.RandomString(10)
 	lastName := utils.RandomString(10)
+	companyName := utils.RandomString(10)
 
 	testCases := []struct {
 		Name          string
@@ -51,16 +53,21 @@ func TestServer_signUp(t *testing.T) {
 		{
 			Name: "Cannot create user",
 			body: fiber.Map{
-				"email":      email,
-				"password":   password,
-				"first_name": firstName,
-				"last_name":  lastName,
+				"email":        email,
+				"password":     password,
+				"first_name":   firstName,
+				"last_name":    lastName,
+				"company_name": companyName,
 			},
 			buildStub: func(q *mock_queries.MockQueries) {
 				q.EXPECT().
 					CreateUser(gomock.Any()).
 					Times(1).
 					Return(model.User{}, errors.New("cannot_create"))
+				q.EXPECT().
+					CreateCompany(gomock.Any()).
+					Times(1).
+					Return(model.Company{}, nil)
 
 			},
 			checkResponse: func(t *testing.T, res *http.Response) {
@@ -70,16 +77,21 @@ func TestServer_signUp(t *testing.T) {
 		{
 			Name: "OK",
 			body: fiber.Map{
-				"email":      email,
-				"password":   password,
-				"first_name": firstName,
-				"last_name":  lastName,
+				"email":        email,
+				"password":     password,
+				"first_name":   firstName,
+				"last_name":    lastName,
+				"company_name": companyName,
 			},
 			buildStub: func(q *mock_queries.MockQueries) {
 				q.EXPECT().
 					CreateUser(gomock.Any()).
 					Times(1).
 					Return(model.User{}, nil)
+				q.EXPECT().
+					CreateCompany(gomock.Any()).
+					Times(1).
+					Return(model.Company{}, nil)
 
 			},
 			checkResponse: func(t *testing.T, res *http.Response) {
@@ -117,7 +129,7 @@ func TestServer_signIn(t *testing.T) {
 	password := utils.RandomString(10)
 	hash, _ := utils.Encrypt(password)
 
-	user := GenerateUser(hash)
+	user := GenerateUser(hash, nil)
 	email := user.Email
 
 	testCases := []struct {

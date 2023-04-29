@@ -1,8 +1,15 @@
 app:
   port: "3000"
+  jwt_secret: "secret"
+  frontend_url: "localhost:8081"
 database:
   user: "postgres"
   password:
   host: "localhost"
   port: 5432
   name: hrm_development
+mailer:
+  host: 
+  post: 
+  username:
+  password:
