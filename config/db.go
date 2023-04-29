@@ -2,8 +2,8 @@ package config
 
 import (
 	"fmt"
+	"os"
 
-	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -11,8 +11,8 @@ import (
 func ConnectDatabase() (*gorm.DB, error) {
 	dsn := fmt.Sprintf(
 		"postgresql://%s:%s@%s:%s/%s?sslmode=disable",
-		viper.GetString("database.user"), viper.GetString("database.password"), viper.GetString("database.host"),
-		viper.GetString("database.port"), viper.GetString("database.name"),
+		os.Getenv("DATABASE_USER"), os.Getenv("DATABASE_PASSWORD"), os.Getenv("DATABASE_HOST"),
+		os.Getenv("DATABASE_PORT"), os.Getenv("DATABASE_NAME"),
 	)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
