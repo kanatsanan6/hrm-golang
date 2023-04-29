@@ -26,6 +26,21 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
+    - name: Environment Variable
+      run: |
+        echo "JWT_SECRET=${{ secrets.DATABASE_HOST }}" >> .env
+        echo "JWT_SECRET=${{ secrets.DATABASE_NAME }}" >> .env
+        echo "JWT_SECRET=${{ secrets.DATABASE_PASSWORD }}" >> .env
+        echo "JWT_SECRET=${{ secrets.DATABASE_PORT }}" >> .env
+        echo "JWT_SECRET=${{ secrets.DATABASE_USER }}" >> .env
+        echo "JWT_SECRET=${{ secrets.FRONTEND_URL }}" >> .env
+        echo "JWT_SECRET=${{ secrets.MAILER_HOST }}" >> .env
+        echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+        echo "JWT_SECRET=${{ secrets.MAILER_PASSWORD }}" >> .env
+        echo "JWT_SECRET=${{ secrets.MAILER_PORT }}" >> .env
+        echo "JWT_SECRET=${{ secrets.MAILER_USERNAME }}" >> .env
+        echo "JWT_SECRET=${{ secrets.PORT }}" >> .env
+
     - name: Build, tag, and push image to Amazon ECR
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
