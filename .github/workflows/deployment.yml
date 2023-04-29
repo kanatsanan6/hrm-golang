@@ -28,18 +28,18 @@ jobs:
 
     - name: Environment Variable
       run: |
-        echo "JWT_SECRET=${{ secrets.DATABASE_HOST }}" >> .env
-        echo "JWT_SECRET=${{ secrets.DATABASE_NAME }}" >> .env
-        echo "JWT_SECRET=${{ secrets.DATABASE_PASSWORD }}" >> .env
-        echo "JWT_SECRET=${{ secrets.DATABASE_PORT }}" >> .env
-        echo "JWT_SECRET=${{ secrets.DATABASE_USER }}" >> .env
-        echo "JWT_SECRET=${{ secrets.FRONTEND_URL }}" >> .env
-        echo "JWT_SECRET=${{ secrets.MAILER_HOST }}" >> .env
+        echo "DATABASE_HOST=${{ secrets.DATABASE_HOST }}" >> .env
+        echo "DATABASE_NAME=${{ secrets.DATABASE_NAME }}" >> .env
+        echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> .env
+        echo "DATABASE_PORT=${{ secrets.DATABASE_PORT }}" >> .env
+        echo "DATABASE_USER=${{ secrets.DATABASE_USER }}" >> .env
+        echo "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" >> .env
+        echo "MAILER_HOST=${{ secrets.MAILER_HOST }}" >> .env
         echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-        echo "JWT_SECRET=${{ secrets.MAILER_PASSWORD }}" >> .env
-        echo "JWT_SECRET=${{ secrets.MAILER_PORT }}" >> .env
-        echo "JWT_SECRET=${{ secrets.MAILER_USERNAME }}" >> .env
-        echo "JWT_SECRET=${{ secrets.PORT }}" >> .env
+        echo "MAILER_PASSWORD=${{ secrets.MAILER_PASSWORD }}" >> .env
+        echo "MAILER_PORT=${{ secrets.MAILER_PORT }}" >> .env
+        echo "MAILER_USERNAME=${{ secrets.MAILER_USERNAME }}" >> .env
+        echo "PORT=${{ secrets.PORT }}" >> .env
 
     - name: Build, tag, and push image to Amazon ECR
       env:
