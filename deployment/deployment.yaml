@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hrm-backend-deployment
+  labels:
+    app: hrm-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hrm-backend
+  template:
+    metadata:
+      labels:
+        app: hrm-backend
+    spec:
+      containers:
+      - name: hrm-backend
+        image: 721705570549.dkr.ecr.ap-southeast-1.amazonaws.com/hrm-backend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3031
