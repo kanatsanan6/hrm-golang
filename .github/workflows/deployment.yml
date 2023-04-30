@@ -3,8 +3,8 @@ name: Deploy Production
 on:
   push:
     branches:
-      - main
-      - build/deployment
+      - "main"
+      - "build/deployment"
 
 jobs:
   build:
