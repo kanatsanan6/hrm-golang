@@ -50,7 +50,7 @@ jobs:
 
     - name: Build and push
       run: |
-        docker build -t --platform linux/amd64 registry.fly.io/hrm-backend:latest .
+        docker build --platform linux/amd64 -t registry.fly.io/hrm-backend:latest .
         docker push registry.fly.io/hrm-backend:latest
 
     - name: Deploy
