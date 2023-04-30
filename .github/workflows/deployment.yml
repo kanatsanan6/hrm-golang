@@ -61,7 +61,6 @@ jobs:
     #     docker push -a $ECR_REGISTRY/$ECR_REPOSITORY
 
     - name: Build and push
-      uses: docker/build-push-action@v4
-      with:
-        push: true
-        tags: kanatsanan/hrm-backend/latest
+      run: |
+        docker build -t kanatsanan/hrm-backend:latest .
+        docker push kanatsanan/hrm-backend:latest
