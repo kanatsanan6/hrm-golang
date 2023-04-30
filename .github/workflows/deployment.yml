@@ -66,7 +66,7 @@ jobs:
     - name: Update kube config
       run: aws eks update-kubeconfig --name hrm --region ap-southeast-1
 
-    - - name: Deploy image to Amazon EKS
+    - name: Deploy image to Amazon EKS
       run: |
         kubectl apply -f eks/aws-auth.yaml
         kubectl apply -f eks/deployment.yaml
