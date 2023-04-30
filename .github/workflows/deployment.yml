@@ -43,24 +43,7 @@ jobs:
         echo MAILER_USERNAME=${{ secrets.MAILER_USERNAME }} >> .env.example
         echo PORT=${{ secrets.PORT }} >> .env.example
 
-    - name: Setup flyctl
-      uses: superfly/flyctl-actions/setup-flyctl@master
-      env:
-        FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
-    - name: authen docker
-      run: fly auth docker
-      env:
-        FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
     - name: Build and push
       run: |
-        docker build --platform linux/amd64 -t registry.fly.io/hrm-backend:latest .
-        docker push registry.fly.io/hrm-backend:latest
-      env:
-        FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
-    - name: Deploy
-      run: flyctl deploy -i registry.fly.io/hrm-backend
-      env:
-        FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        docker build -t kanatsanan/hrm-backend:latest .
+        docker push kanatsanan/hrm-backend:latest
