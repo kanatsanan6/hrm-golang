@@ -48,6 +48,11 @@ jobs:
       env:
         FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
+    - name: authen docker
+      run: fly auth docker
+      env:
+        FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
     - name: Build and push
       run: |
         docker build --platform linux/amd64 -t registry.fly.io/hrm-backend:latest .
