@@ -50,6 +50,7 @@ jobs:
         echo MAILER_PORT=${{ secrets.MAILER_PORT }} >> .env.example
         echo MAILER_USERNAME=${{ secrets.MAILER_USERNAME }} >> .env.example
         echo PORT=${{ secrets.PORT }} >> .env.example
+        cat .env.example
 
     # - name: Build, tag, and push image to Amazon ECR
     #   env:
