@@ -2,12 +2,10 @@ name: Run unit test
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - "**"
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     steps:
