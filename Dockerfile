@@ -9,8 +9,10 @@ FROM alpine:3.16
 WORKDIR /app
 COPY --from=builder /app/main .
 COPY --from=builder /app/migrate.linux-amd64 ./migrate
+RUN ls -al
 COPY .env.example .
 RUN mv .env.example .env
+RUN cat .env
 COPY start.sh .
 COPY wait-for.sh .
 COPY /migration ./migration
