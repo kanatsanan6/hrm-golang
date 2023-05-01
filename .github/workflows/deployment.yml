@@ -13,6 +13,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref:
+            - main
+            - build/deploy
+
       - name: Environment Variable
         run: |
           echo DATABASE_HOST=${{ secrets.DATABASE_HOST }} >> .env
@@ -27,7 +32,8 @@ jobs:
           echo MAILER_PORT=${{ secrets.MAILER_PORT }} >> .env
           echo MAILER_USERNAME=${{ secrets.MAILER_USERNAME }} >> .env
           echo PORT=${{ secrets.PORT }} >> .env
-          ls .env
+          pwd
+          cat .env
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
 
