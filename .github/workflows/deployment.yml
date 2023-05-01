@@ -14,9 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref:
-            - main
-            - build/deploy
+          ref: build/deploy
 
       - name: Environment Variable
         run: |
