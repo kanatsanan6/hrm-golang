@@ -11,58 +11,101 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: check out code
-      uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+      - name: Environment Variable
+        run: |
+          echo DATABASE_HOST=${{ secrets.DATABASE_HOST }} >> .env
+          echo DATABASE_NAME=${{ secrets.DATABASE_NAME }} >> .env
+          echo DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} >> .env
+          echo DATABASE_PORT=${{ secrets.DATABASE_PORT }} >> .env
+          echo DATABASE_USER=${{ secrets.DATABASE_USER }} >> .env
+          echo FRONTEND_URL=${{ secrets.FRONTEND_URL }} >> .env
+          echo MAILER_HOST=${{ secrets.MAILER_HOST }} >> .env
+          echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env
+          echo MAILER_PASSWORD=${{ secrets.MAILER_PASSWORD }} >> .env
+          echo MAILER_PORT=${{ secrets.MAILER_PORT }} >> .env
+          echo MAILER_USERNAME=${{ secrets.MAILER_USERNAME }} >> .env
+          echo PORT=${{ secrets.PORT }} >> .env
+          ls
+          cat .env
 
-    - name: Install kubectl
-      uses: azure/setup-kubectl@v1
-      with:
-        version: 'v1.21.3'
-      id: install
+      - uses: superfly/flyctl-actions/setup-flyctl@master
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ap-southeast-1
+      - name: Deploy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          flyctl secrets set  DATABASE_HOST=${{ secrets.DATABASE_HOST }}
+          flyctl secrets set  DATABASE_NAME=${{ secrets.DATABASE_NAME }}
+          flyctl secrets set  DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
+          flyctl secrets set  DATABASE_PORT=${{ secrets.DATABASE_PORT }}
+          flyctl secrets set  DATABASE_USER=${{ secrets.DATABASE_USER }}
+          flyctl secrets set  FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+          flyctl secrets set  MAILER_HOST=${{ secrets.MAILER_HOST }}
+          flyctl secrets set  JWT_SECRET=${{ secrets.JWT_SECRET }}
+          flyctl secrets set  MAILER_PASSWORD=${{ secrets.MAILER_PASSWORD }}
+          flyctl secrets set  MAILER_PORT=${{ secrets.MAILER_PORT }}
+          flyctl secrets set  MAILER_USERNAME=${{ secrets.MAILER_USERNAME }}
+          flyctl secrets set  PORT=${{ secrets.PORT }}
+          flyctl deploy --remote-only
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Environment Variable
-      run: |
-        echo DATABASE_HOST=${{ secrets.DATABASE_HOST }} >> .env.example
-        echo DATABASE_NAME=${{ secrets.DATABASE_NAME }} >> .env.example
-        echo DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} >> .env.example
-        echo DATABASE_PORT=${{ secrets.DATABASE_PORT }} >> .env.example
-        echo DATABASE_USER=${{ secrets.DATABASE_USER }} >> .env.example
-        echo FRONTEND_URL=${{ secrets.FRONTEND_URL }} >> .env.example
-        echo MAILER_HOST=${{ secrets.MAILER_HOST }} >> .env.example
-        echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env.example
-        echo MAILER_PASSWORD=${{ secrets.MAILER_PASSWORD }} >> .env.example
-        echo MAILER_PORT=${{ secrets.MAILER_PORT }} >> .env.example
-        echo MAILER_USERNAME=${{ secrets.MAILER_USERNAME }} >> .env.example
-        echo PORT=${{ secrets.PORT }} >> .env.example
+    # steps:
+    # - name: check out code
+    #   uses: actions/checkout@v3
 
-    - name: Build, tag, and push image to Amazon ECR
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: hrm-backend
-        IMAGE_TAG: ${{ github.sha }}
-      run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
-        docker push -a $ECR_REGISTRY/$ECR_REPOSITORY
+    # move to fly.io because of expense
+    # but POC is success
 
-    - name: Update kube config
-      run: aws eks update-kubeconfig --name hrm --region ap-southeast-1
+    # - name: Install kubectl
+    #   uses: azure/setup-kubectl@v1
+    #   with:
+    #     version: 'v1.21.3'
+    #   id: install
+
+    # - name: Configure AWS credentials
+    #   uses: aws-actions/configure-aws-credentials@v1
+    #   with:
+    #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #     aws-region: ap-southeast-1
+
+    # - name: Login to Amazon ECR
+    #   id: login-ecr
+    #   uses: aws-actions/amazon-ecr-login@v1
+
+    # - name: Environment Variable
+    #   run: |
+    #     echo DATABASE_HOST=${{ secrets.DATABASE_HOST }} >> .env.example
+    #     echo DATABASE_NAME=${{ secrets.DATABASE_NAME }} >> .env.example
+    #     echo DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} >> .env.example
+    #     echo DATABASE_PORT=${{ secrets.DATABASE_PORT }} >> .env.example
+    #     echo DATABASE_USER=${{ secrets.DATABASE_USER }} >> .env.example
+    #     echo FRONTEND_URL=${{ secrets.FRONTEND_URL }} >> .env.example
+    #     echo MAILER_HOST=${{ secrets.MAILER_HOST }} >> .env.example
+    #     echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env.example
+    #     echo MAILER_PASSWORD=${{ secrets.MAILER_PASSWORD }} >> .env.example
+    #     echo MAILER_PORT=${{ secrets.MAILER_PORT }} >> .env.example
+    #     echo MAILER_USERNAME=${{ secrets.MAILER_USERNAME }} >> .env.example
+    #     echo PORT=${{ secrets.PORT }} >> .env.example
+
+    # - name: Build, tag, and push image to Amazon ECR
+    #   env:
+    #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+    #     ECR_REPOSITORY: hrm-backend
+    #     IMAGE_TAG: ${{ github.sha }}
+    #   run: |
+    #     docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+    #     docker push -a $ECR_REGISTRY/$ECR_REPOSITORY
+
+    # - name: Update kube config
+    #   run: aws eks update-kubeconfig --name hrm --region ap-southeast-1
 
     # - name: Redeploy image
     #   run: kubectl rollout restart deployment/hrm-backend-deployment
 
-    - name: Deploy image to Amazon EKS
-      run: |
-        kubectl apply -f deployment/aws-auth.yaml
-        kubectl apply -f deployment/deployment.yaml
-        kubectl apply -f deployment/service.yaml
+    # - name: Deploy image to Amazon EKS
+    #   run: |
+    #     kubectl apply -f deployment/aws-auth.yaml
+    #     kubectl apply -f deployment/deployment.yaml
+    #     kubectl apply -f deployment/service.yaml
