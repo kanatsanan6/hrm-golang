@@ -6,15 +6,20 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/kanatsanan6/hrm/queries"
+	"github.com/kanatsanan6/hrm/service"
 )
 
 type Server struct {
 	Router  *fiber.App
 	Queries queries.Queries
+	Policy  service.PolicyInterface
 }
 
-func NewServer(q queries.Queries) *Server {
-	server := &Server{Queries: q}
+func NewServer(q queries.Queries, p service.PolicyInterface) *Server {
+	server := &Server{
+		Queries: q,
+		Policy:  p,
+	}
 
 	server.setupRouter()
 
@@ -33,12 +38,13 @@ func (s *Server) setupRouter() {
 	v1.Post("/sign_up", s.signUp)
 	v1.Post("/sign_in", s.signIn)
 
-	v1.Use(AuthMiddleware(), MeMiddleware())
+	v1.Use(s.AuthMiddleware(), s.MeMiddleware())
 
 	v1.Get("/me", s.me)
 	v1.Post("/company", s.createCompany)
 	v1.Get("/company/users", s.getUsers)
 	v1.Post("/invite", s.inviteUser)
+	v1.Delete("/company/users/:id", s.deleteUser)
 
 	s.Router = app
 }

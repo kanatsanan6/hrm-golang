@@ -10,6 +10,7 @@ type CreateUserArgs struct {
 	FirstName         string
 	LastName          string
 	CompanyID         *uint
+	Role              string
 }
 
 func (q *SQLQueries) CreateUser(args CreateUserArgs) (model.User, error) {
@@ -19,9 +20,25 @@ func (q *SQLQueries) CreateUser(args CreateUserArgs) (model.User, error) {
 		FirstName:         args.FirstName,
 		LastName:          args.LastName,
 		CompanyID:         args.CompanyID,
+		Role:              args.Role,
 	}
 
 	if err := q.DB.Create(&user).Error; err != nil {
+		return model.User{}, err
+	}
+	return user, nil
+}
+
+func (q *SQLQueries) DeleteUser(user model.User) error {
+	if err := q.DB.Delete(&user).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (q *SQLQueries) FindUserByID(id uint) (model.User, error) {
+	var user model.User
+	if err := q.DB.Where("ID = ?", id).First(&user).Error; err != nil {
 		return model.User{}, err
 	}
 	return user, nil

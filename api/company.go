@@ -71,7 +71,7 @@ func (s *Server) getUsers(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusNotFound, err.Error())
 	}
 
-	users := []userType{}
+	users := []UserType{}
 	for _, user := range company.Users {
 		users = append(users, userResponse(user))
 	}

@@ -14,6 +14,7 @@ import (
 	"github.com/kanatsanan6/hrm/api"
 	"github.com/kanatsanan6/hrm/model"
 	mock_queries "github.com/kanatsanan6/hrm/queries/mock"
+	mock_service "github.com/kanatsanan6/hrm/service/mock"
 	"github.com/kanatsanan6/hrm/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/valyala/fasthttp"
@@ -108,9 +109,10 @@ func TestServer_signUp(t *testing.T) {
 			defer ctrl.Finish()
 
 			q := mock_queries.NewMockQueries(ctrl)
+			p := mock_service.NewMockPolicyInterface(ctrl)
 			tc.buildStub(q)
 
-			server := api.NewServer(q)
+			server := api.NewServer(q, p)
 
 			data, err := json.Marshal(tc.body)
 			assert.NoError(t, err)
@@ -218,9 +220,10 @@ func TestServer_signIn(t *testing.T) {
 			defer ctrl.Finish()
 
 			q := mock_queries.NewMockQueries(ctrl)
+			p := mock_service.NewMockPolicyInterface(ctrl)
 			tc.buildStub(q)
 
-			server := api.NewServer(q)
+			server := api.NewServer(q, p)
 
 			data, err := json.Marshal(tc.body)
 			assert.NoError(t, err)
@@ -290,9 +293,10 @@ func TestServer_me(t *testing.T) {
 			defer ctrl.Finish()
 
 			q := mock_queries.NewMockQueries(ctrl)
+			p := mock_service.NewMockPolicyInterface(ctrl)
 			tc.buildStub(q)
 
-			server := api.NewServer(q)
+			server := api.NewServer(q, p)
 			app := server.Router
 			ctx := app.AcquireCtx(&fasthttp.RequestCtx{})
 
@@ -304,6 +308,179 @@ func TestServer_me(t *testing.T) {
 
 			res, _ := server.Router.Test(req, -1)
 
+			tc.checkResponse(t, res)
+		})
+	}
+}
+
+func TestServer_inviteUser(t *testing.T) {
+	email := "kanatsanan.j1998@gmail.com"
+	firstName := utils.RandomString(10)
+	lastName := utils.RandomString(10)
+	user := &model.User{Email: email}
+
+	testCases := []struct {
+		name          string
+		body          fiber.Map
+		setupAuth     func(t *testing.T, req *http.Request, email string)
+		buildStub     func(q *mock_queries.MockQueries, s *mock_service.MockPolicyInterface)
+		checkResponse func(t *testing.T, res *http.Response)
+	}{
+		{
+			name:      "Unauthorized",
+			body:      fiber.Map{},
+			setupAuth: func(t *testing.T, req *http.Request, email string) {},
+			buildStub: func(q *mock_queries.MockQueries, s *mock_service.MockPolicyInterface) {},
+			checkResponse: func(t *testing.T, res *http.Response) {
+				assert.Equal(t, fiber.StatusUnauthorized, res.StatusCode)
+			},
+		},
+		{
+			name: "Unauthorized 2",
+			body: fiber.Map{"email": email, "first_name": firstName, "last_name": lastName},
+			setupAuth: func(t *testing.T, req *http.Request, email string) {
+				AddAuth(t, req, email)
+			},
+			buildStub: func(q *mock_queries.MockQueries, p *mock_service.MockPolicyInterface) {
+				MockMe(q, *user, email)
+				p.EXPECT().
+					Authorize(gomock.Any(), "user_management", "invite").
+					Return(false)
+			},
+			checkResponse: func(t *testing.T, res *http.Response) {
+				assert.Equal(t, fiber.StatusUnauthorized, res.StatusCode)
+			},
+		},
+		{
+			name: "Bad Request",
+			body: fiber.Map{},
+			setupAuth: func(t *testing.T, req *http.Request, email string) {
+				AddAuth(t, req, email)
+			},
+			buildStub: func(q *mock_queries.MockQueries, p *mock_service.MockPolicyInterface) {
+				MockMe(q, *user, email)
+				p.EXPECT().
+					Authorize(gomock.Any(), "user_management", "invite").
+					Return(true)
+			},
+			checkResponse: func(t *testing.T, res *http.Response) {
+				assert.Equal(t, fiber.StatusBadRequest, res.StatusCode)
+			},
+		},
+		{
+			name: "user already exists",
+			body: fiber.Map{"email": email, "first_name": firstName, "last_name": lastName},
+			setupAuth: func(t *testing.T, req *http.Request, email string) {
+				AddAuth(t, req, email)
+			},
+			buildStub: func(q *mock_queries.MockQueries, p *mock_service.MockPolicyInterface) {
+				MockMe(q, *user, email)
+				p.EXPECT().
+					Authorize(gomock.Any(), "user_management", "invite").
+					Return(true)
+				q.EXPECT().
+					FindUserByEmail(gomock.Eq(email)).
+					Return(model.User{Email: email}, nil)
+			},
+			checkResponse: func(t *testing.T, res *http.Response) {
+				assert.Equal(t, fiber.StatusUnprocessableEntity, res.StatusCode)
+			},
+		},
+		{
+			name: "user already exists",
+			body: fiber.Map{"email": email, "first_name": firstName, "last_name": lastName},
+			setupAuth: func(t *testing.T, req *http.Request, email string) {
+				AddAuth(t, req, email)
+			},
+			buildStub: func(q *mock_queries.MockQueries, p *mock_service.MockPolicyInterface) {
+				MockMe(q, *user, email)
+				p.EXPECT().
+					Authorize(gomock.Any(), "user_management", "invite").
+					Return(true)
+				q.EXPECT().
+					FindUserByEmail(gomock.Eq(email)).
+					Return(model.User{Email: email}, nil)
+			},
+			checkResponse: func(t *testing.T, res *http.Response) {
+				assert.Equal(t, fiber.StatusUnprocessableEntity, res.StatusCode)
+			},
+		},
+		{
+			name: "cannot create user",
+			body: fiber.Map{"email": email, "first_name": firstName, "last_name": lastName},
+			setupAuth: func(t *testing.T, req *http.Request, email string) {
+				AddAuth(t, req, email)
+			},
+			buildStub: func(q *mock_queries.MockQueries, p *mock_service.MockPolicyInterface) {
+				MockMe(q, *user, email)
+				p.EXPECT().
+					Authorize(gomock.Any(), "user_management", "invite").
+					Return(true)
+				q.EXPECT().
+					FindUserByEmail(gomock.Eq(email)).
+					Return(model.User{}, nil)
+				q.EXPECT().
+					CreateUser(gomock.Any()).
+					Return(model.User{Email: email}, errors.New("cannot create user"))
+			},
+			checkResponse: func(t *testing.T, res *http.Response) {
+				assert.Equal(t, fiber.StatusUnprocessableEntity, res.StatusCode)
+			},
+		},
+		{
+			name: "cannot update user token",
+			body: fiber.Map{"email": email, "first_name": firstName, "last_name": lastName},
+			setupAuth: func(t *testing.T, req *http.Request, email string) {
+				AddAuth(t, req, email)
+			},
+			buildStub: func(q *mock_queries.MockQueries, p *mock_service.MockPolicyInterface) {
+				MockMe(q, *user, email)
+				p.EXPECT().
+					Authorize(gomock.Any(), "user_management", "invite").
+					Return(true)
+				q.EXPECT().
+					FindUserByEmail(gomock.Eq(email)).
+					Return(model.User{}, nil)
+				q.EXPECT().
+					CreateUser(gomock.Any()).
+					Return(model.User{Email: email}, nil)
+				q.EXPECT().
+					UpdateUserForgetPasswordToken(gomock.Any(), gomock.Any()).
+					Return(errors.New("cannot update"))
+			},
+			checkResponse: func(t *testing.T, res *http.Response) {
+				assert.Equal(t, fiber.StatusUnprocessableEntity, res.StatusCode)
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			q := mock_queries.NewMockQueries(ctrl)
+			p := mock_service.NewMockPolicyInterface(ctrl)
+			server := api.NewServer(q, p)
+			c := server.Router.AcquireCtx(&fasthttp.RequestCtx{})
+
+			companyId := uint(utils.RandomNumber(1, 10))
+			currentUser := model.User{
+				CompanyID: &companyId,
+			}
+			c.Locals("users", currentUser)
+
+			tc.buildStub(q, p)
+
+			data, err := json.Marshal(tc.body)
+			assert.NoError(t, err)
+
+			req := httptest.NewRequest("POST", "/api/v1/invite", bytes.NewBuffer(data))
+			tc.setupAuth(t, req, email)
+
+			res, _ := server.Router.Test(req, -1)
 			tc.checkResponse(t, res)
 		})
 	}

@@ -7,6 +7,8 @@ import (
 
 type Queries interface {
 	CreateUser(args CreateUserArgs) (model.User, error)
+	DeleteUser(user model.User) error
+	FindUserByID(id uint) (model.User, error)
 	FindUserByEmail(email string) (model.User, error)
 	FindUserByForgetPasswordToken(token string) (model.User, error)
 	UpdateUserCompanyID(user model.User, id uint) error

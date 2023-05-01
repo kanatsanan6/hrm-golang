@@ -65,6 +65,20 @@ func (mr *MockQueriesMockRecorder) CreateUser(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockQueries)(nil).CreateUser), arg0)
 }
 
+// DeleteUser mocks base method.
+func (m *MockQueries) DeleteUser(arg0 model.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteUser", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteUser indicates an expected call of DeleteUser.
+func (mr *MockQueriesMockRecorder) DeleteUser(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockQueries)(nil).DeleteUser), arg0)
+}
+
 // FindCompanyByID mocks base method.
 func (m *MockQueries) FindCompanyByID(arg0 uint) (model.Company, error) {
 	m.ctrl.T.Helper()
@@ -108,6 +122,21 @@ func (m *MockQueries) FindUserByForgetPasswordToken(arg0 string) (model.User, er
 func (mr *MockQueriesMockRecorder) FindUserByForgetPasswordToken(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserByForgetPasswordToken", reflect.TypeOf((*MockQueries)(nil).FindUserByForgetPasswordToken), arg0)
+}
+
+// FindUserByID mocks base method.
+func (m *MockQueries) FindUserByID(arg0 uint) (model.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindUserByID", arg0)
+	ret0, _ := ret[0].(model.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindUserByID indicates an expected call of FindUserByID.
+func (mr *MockQueriesMockRecorder) FindUserByID(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserByID", reflect.TypeOf((*MockQueries)(nil).FindUserByID), arg0)
 }
 
 // UpdateUserCompanyID mocks base method.

@@ -16,6 +16,7 @@ import (
 	"github.com/kanatsanan6/hrm/model"
 	"github.com/kanatsanan6/hrm/queries"
 	mock_queries "github.com/kanatsanan6/hrm/queries/mock"
+	mock_service "github.com/kanatsanan6/hrm/service/mock"
 	"github.com/kanatsanan6/hrm/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/valyala/fasthttp"
@@ -33,6 +34,7 @@ func generateCompany() *model.Company {
 func TestServer_createCompany(t *testing.T) {
 	email := "kanatsanan.j1998@gmail.com"
 	company := generateCompany()
+	user := GenerateUser(utils.RandomString(10), &company.ID)
 
 	testCases := []struct {
 		name          string
@@ -56,7 +58,9 @@ func TestServer_createCompany(t *testing.T) {
 			setupAuth: func(t *testing.T, req *http.Request, email string) {
 				AddAuth(t, req, email)
 			},
-			buildStub: func(q *mock_queries.MockQueries) {},
+			buildStub: func(q *mock_queries.MockQueries) {
+				MockMe(q, *user, email)
+			},
 			checkResponse: func(t *testing.T, res *http.Response) {
 				assert.Equal(t, fiber.StatusBadRequest, res.StatusCode)
 			},
@@ -68,6 +72,7 @@ func TestServer_createCompany(t *testing.T) {
 				AddAuth(t, req, email)
 			},
 			buildStub: func(q *mock_queries.MockQueries) {
+				MockMe(q, *user, email)
 				q.EXPECT().
 					FindUserByEmail(gomock.Eq(email)).
 					Times(1).
@@ -84,6 +89,7 @@ func TestServer_createCompany(t *testing.T) {
 				AddAuth(t, req, email)
 			},
 			buildStub: func(q *mock_queries.MockQueries) {
+				MockMe(q, *user, email)
 				q.EXPECT().
 					FindUserByEmail(gomock.Eq(email)).
 					Times(1).
@@ -104,6 +110,7 @@ func TestServer_createCompany(t *testing.T) {
 				AddAuth(t, req, email)
 			},
 			buildStub: func(q *mock_queries.MockQueries) {
+				MockMe(q, *user, email)
 				q.EXPECT().
 					FindUserByEmail(gomock.Eq(email)).
 					Times(1).
@@ -128,6 +135,7 @@ func TestServer_createCompany(t *testing.T) {
 				AddAuth(t, req, email)
 			},
 			buildStub: func(q *mock_queries.MockQueries) {
+				MockMe(q, *user, email)
 				q.EXPECT().
 					FindUserByEmail(gomock.Eq(email)).
 					Times(1).
@@ -166,9 +174,10 @@ func TestServer_createCompany(t *testing.T) {
 			defer ctrl.Finish()
 
 			q := mock_queries.NewMockQueries(ctrl)
+			p := mock_service.NewMockPolicyInterface(ctrl)
 			tc.buildStub(q)
 
-			server := api.NewServer(q)
+			server := api.NewServer(q, p)
 			app := server.Router
 			ctx := app.AcquireCtx(&fasthttp.RequestCtx{})
 
@@ -230,6 +239,7 @@ func TestServer_getUsers(t *testing.T) {
 				AddAuth(t, req, email)
 			},
 			buildStub: func(q *mock_queries.MockQueries) {
+				MockMe(q, *user, email)
 				q.EXPECT().
 					FindUserByEmail(gomock.Eq(email)).
 					Times(1).
@@ -246,6 +256,7 @@ func TestServer_getUsers(t *testing.T) {
 				AddAuth(t, req, email)
 			},
 			buildStub: func(q *mock_queries.MockQueries) {
+				MockMe(q, *user, email)
 				q.EXPECT().
 					FindUserByEmail(gomock.Eq(email)).
 					Times(1).
@@ -266,6 +277,7 @@ func TestServer_getUsers(t *testing.T) {
 				AddAuth(t, req, email)
 			},
 			buildStub: func(q *mock_queries.MockQueries) {
+				MockMe(q, *user, email)
 				q.EXPECT().
 					FindUserByEmail(gomock.Eq(email)).
 					Times(1).
@@ -302,9 +314,10 @@ func TestServer_getUsers(t *testing.T) {
 			defer ctrl.Finish()
 
 			q := mock_queries.NewMockQueries(ctrl)
+			p := mock_service.NewMockPolicyInterface(ctrl)
 			tc.buildStub(q)
 
-			server := api.NewServer(q)
+			server := api.NewServer(q, p)
 			app := server.Router
 			ctx := app.AcquireCtx(&fasthttp.RequestCtx{})
 

@@ -9,20 +9,26 @@ import (
 	"github.com/kanatsanan6/hrm/utils"
 )
 
-func AuthMiddleware() fiber.Handler {
+func (s *Server) AuthMiddleware() fiber.Handler {
 	return jwtware.New(jwtware.Config{
 		SigningKey:   []byte(os.Getenv("JWT_SECRET")),
 		ErrorHandler: authError,
 	})
 }
 
-func MeMiddleware() fiber.Handler {
+func (s *Server) MeMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		data := c.Locals("user").(*jwt.Token)
 		claims := data.Claims.(jwt.MapClaims)
 		email := claims["email"].(string)
 
+		user, err := s.Queries.FindUserByEmail(email)
+		if err != nil {
+			return utils.ErrorResponse(c, fiber.StatusNotFound, err.Error())
+		}
+
 		c.Locals("email", email)
+		c.Locals("user", user)
 		return c.Next()
 	}
 }

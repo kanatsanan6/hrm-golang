@@ -7,13 +7,16 @@ import (
 	"github.com/kanatsanan6/hrm/api"
 	"github.com/kanatsanan6/hrm/config"
 	"github.com/kanatsanan6/hrm/queries"
+	"github.com/kanatsanan6/hrm/service"
 )
 
-// func init() {
-// 	if err := config.LoadEnv(); err != nil {
-// 		log.Fatalf("fatal error config file: %s", err)
-// 	}
-// }
+func init() {
+	if err := config.LoadEnv(); err != nil {
+		if environment := os.Getenv("ENV"); environment == "developement" {
+			log.Fatalf("fatal error config file: %s", err)
+		}
+	}
+}
 
 func main() {
 	db, err := config.ConnectDatabase()
@@ -28,8 +31,9 @@ func main() {
 	)
 
 	q := queries.NewQueries(db)
+	p := service.NewPolicy()
 
-	server := api.NewServer(q)
+	server := api.NewServer(q, p)
 
 	server.Start(os.Getenv("PORT"))
 }

@@ -15,22 +15,24 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-type userType struct {
+type UserType struct {
 	ID        uint      `json:"id"`
 	Email     string    `json:"email"`
 	FirstName string    `json:"first_name"`
 	LastName  string    `json:"last_name"`
+	Role      string    `json:"role"`
 	CompanyID *uint     `json:"company_id"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func userResponse(user model.User) userType {
-	return userType{
+func userResponse(user model.User) UserType {
+	return UserType{
 		ID:        user.ID,
 		Email:     user.Email,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
+		Role:      user.Role,
 		CompanyID: user.CompanyID,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
@@ -71,6 +73,7 @@ func (s *Server) signUp(c *fiber.Ctx) error {
 		FirstName:         body.FirstName,
 		LastName:          body.LastName,
 		CompanyID:         &company.ID,
+		Role:              "admin",
 	})
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
@@ -128,15 +131,31 @@ func (s *Server) signIn(c *fiber.Ctx) error {
 	return utils.JsonResponse(c, fiber.StatusOK, response)
 }
 
-func (s *Server) me(c *fiber.Ctx) error {
-	email := c.Locals("email").(string)
+type MeType struct {
+	User   UserType             `json:"user"`
+	Policy []service.PolicyType `json:"policy"`
+}
 
-	user, err := s.Queries.FindUserByEmail(email)
-	if err != nil {
-		return utils.ErrorResponse(c, fiber.StatusNotFound, err.Error())
+func meResponse(user model.User, policies []map[string]string) *MeType {
+	var policyResult []service.PolicyType
+	for _, policy := range policies {
+		policyResult = append(policyResult, service.PolicyType{
+			Subject: policy["subject"],
+			Action:  policy["action"],
+		})
 	}
 
-	return utils.JsonResponse(c, fiber.StatusOK, userResponse(user))
+	return &MeType{
+		User:   userResponse(user),
+		Policy: policyResult,
+	}
+}
+
+func (s *Server) me(c *fiber.Ctx) error {
+	user := c.Locals("user").(model.User)
+	p := service.NewPolicy()
+
+	return utils.JsonResponse(c, fiber.StatusOK, meResponse(user, p.Export(c)))
 }
 
 type InviteUserBody struct {
@@ -146,6 +165,10 @@ type InviteUserBody struct {
 }
 
 func (s *Server) inviteUser(c *fiber.Ctx) error {
+	if authorized := s.Policy.Authorize(c, "user_management", "invite"); !authorized {
+		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "unauthorized")
+	}
+
 	var body InviteUserBody
 	if err := c.BodyParser(&body); err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
@@ -153,11 +176,6 @@ func (s *Server) inviteUser(c *fiber.Ctx) error {
 
 	if err := utils.ValidateStruct(body); len(err) != 0 {
 		return utils.ErrorResponse(c, fiber.StatusBadRequest, err)
-	}
-
-	currentUser, err := s.Queries.FindUserByEmail(c.Locals("email").(string))
-	if err != nil {
-		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "unauthorized")
 	}
 
 	user, _ := s.Queries.FindUserByEmail(body.Email)
@@ -175,16 +193,18 @@ func (s *Server) inviteUser(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
 
+	currentUser := c.Locals("user").(model.User)
 	user, err = s.Queries.CreateUser(queries.CreateUserArgs{
 		Email:             body.Email,
 		EncryptedPassword: hash,
 		FirstName:         body.FirstName,
 		LastName:          body.LastName,
 		CompanyID:         currentUser.CompanyID,
+		Role:              "member",
 	})
 
 	if err != nil {
-		utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
+		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
 	}
 
 	token := user.GenerateResetPasswordToken()
@@ -266,4 +286,34 @@ func (s *Server) resetPassword(c *fiber.Ctx) error {
 	}
 
 	return utils.JsonResponse(c, fiber.StatusOK, userResponse(user))
+}
+
+type DeleteUserBody struct {
+	ID uint `json:"id" validate:"required"`
+}
+
+func (s *Server) deleteUser(c *fiber.Ctx) error {
+	p := service.Policy{}
+	if authorized := p.Authorize(c, "user_management", "delete"); !authorized {
+		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "unauthorized")
+	}
+
+	var body DeleteUserBody
+	if err := c.ParamsParser(&body); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
+
+	if err := utils.ValidateStruct(body); len(err) != 0 {
+		return utils.ErrorResponse(c, fiber.StatusBadRequest, err)
+	}
+	user, err := s.Queries.FindUserByID(body.ID)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusNotFound, "user not found")
+	}
+
+	if err := s.Queries.DeleteUser(user); err != nil {
+		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
+	}
+
+	return utils.JsonResponse(c, fiber.StatusNoContent, "")
 }
