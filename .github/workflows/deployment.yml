@@ -14,23 +14,40 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Environment Variable
+        run: |
+          touch .env
+          echo DATABASE_HOST=${{ secrets.DATABASE_HOST }} >> .env
+          echo DATABASE_NAME=${{ secrets.DATABASE_NAME }} >> .env
+          echo DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} >> .env
+          echo DATABASE_PORT=${{ secrets.DATABASE_PORT }} >> .env
+          echo DATABASE_USER=${{ secrets.DATABASE_USER }} >> .env
+          echo FRONTEND_URL=${{ secrets.FRONTEND_URL }} >> .env
+          echo MAILER_HOST=${{ secrets.MAILER_HOST }} >> .env
+          echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env
+          echo MAILER_PASSWORD=${{ secrets.MAILER_PASSWORD }} >> .env
+          echo MAILER_PORT=${{ secrets.MAILER_PORT }} >> .env
+          echo MAILER_USERNAME=${{ secrets.MAILER_USERNAME }} >> .env
+          echo PORT=${{ secrets.PORT }} >> .env
+
       - name: Deploy
+        run: flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-        run: |
-          flyctl deploy --remote-only \
-            --build-secret DATABASE_HOST=${{ secrets.DATABASE_HOST }} \
-            --build-secret DATABASE_NAME=${{ secrets.DATABASE_NAME }} \
-            --build-secret DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} \
-            --build-secret DATABASE_PORT=${{ secrets.DATABASE_PORT }} \
-            --build-secret DATABASE_USER=${{ secrets.DATABASE_USER }} \
-            --build-secret FRONTEND_URL=${{ secrets.FRONTEND_URL }} \
-            --build-secret MAILER_HOST=${{ secrets.MAILER_HOST }} \
-            --build-secret JWT_SECRET=${{ secrets.JWT_SECRET }} \
-            --build-secret MAILER_PASSWORD=${{ secrets.MAILER_PASSWORD }} \
-            --build-secret MAILER_PORT=${{ secrets.MAILER_PORT }} \
-            --build-secret MAILER_USERNAME=${{ secrets.MAILER_USERNAME }} \
-            --build-secret PORT=${{ secrets.PORT }}
+
+            # --build-secret DATABASE_HOST=${{ secrets.DATABASE_HOST }} \
+            # --build-secret DATABASE_NAME=${{ secrets.DATABASE_NAME }} \
+            # --build-secret DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} \
+            # --build-secret DATABASE_PORT=${{ secrets.DATABASE_PORT }} \
+            # --build-secret DATABASE_USER=${{ secrets.DATABASE_USER }} \
+            # --build-secret FRONTEND_URL=${{ secrets.FRONTEND_URL }} \
+            # --build-secret MAILER_HOST=${{ secrets.MAILER_HOST }} \
+            # --build-secret JWT_SECRET=${{ secrets.JWT_SECRET }} \
+            # --build-secret MAILER_PASSWORD=${{ secrets.MAILER_PASSWORD }} \
+            # --build-secret MAILER_PORT=${{ secrets.MAILER_PORT }} \
+            # --build-secret MAILER_USERNAME=${{ secrets.MAILER_USERNAME }} \
+            # --build-secret PORT=${{ secrets.PORT }}
 
 
     # steps:
