@@ -58,8 +58,8 @@ jobs:
     - name: Update kube config
       run: aws eks update-kubeconfig --name hrm --region ap-southeast-1
 
-    - name: Redeploy image
-      run: kubectl rollout restart deployment/hrm-backend-deployment
+    # - name: Redeploy image
+    #   run: kubectl rollout restart deployment/hrm-backend-deployment
 
     - name: Deploy image to Amazon EKS
       run: |
