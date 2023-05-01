@@ -9,11 +9,11 @@ import (
 	"github.com/kanatsanan6/hrm/queries"
 )
 
-func init() {
-	if err := config.LoadEnv(); err != nil {
-		log.Fatalf("fatal error config file: %s", err)
-	}
-}
+// func init() {
+// 	if err := config.LoadEnv(); err != nil {
+// 		log.Fatalf("fatal error config file: %s", err)
+// 	}
+// }
 
 func main() {
 	db, err := config.ConnectDatabase()
