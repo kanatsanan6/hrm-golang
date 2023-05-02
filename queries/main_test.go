@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	dbSource = "postgresql://postgres:secret@localhost:5432/hrm_test"
+	dbSource = "postgresql://postgres:secret@localhost:5432/hrm_development"
 )
 
 var testQueries queries.Queries
