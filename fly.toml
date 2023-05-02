@@ -13,11 +13,10 @@ primary_region = "nrt"
 [env]
   PORT = "3031"
 
-[processes]
-  migration = "make migrateup"
+[deploy]
+  release_command = "make migrateup"
 
 [http_service]
-  processes = ["migration"]
   internal_port = 3031
   force_https = true
   auto_stop_machines = true
