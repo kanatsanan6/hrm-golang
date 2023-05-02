@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang/mock/gomock"
@@ -25,8 +24,9 @@ func TestServer_createLeave(t *testing.T) {
 	user := model.User{Email: email}
 
 	description := utils.RandomString(10)
-	startDate := time.Now()
-	endDate := time.Now().Add(24 * time.Hour)
+	startDate := "2023-04-24"
+	endDate := "2023-04-25"
+	leaveType := "vacation_leave"
 
 	testCases := []struct {
 		name          string
@@ -63,6 +63,7 @@ func TestServer_createLeave(t *testing.T) {
 				"description": description,
 				"start_date":  startDate,
 				"end_date":    endDate,
+				"leave_type":  leaveType,
 			},
 			setupAuth: func(t *testing.T, req *http.Request, email string) {
 				AddAuth(t, req, email)
@@ -83,6 +84,7 @@ func TestServer_createLeave(t *testing.T) {
 				"description": description,
 				"start_date":  startDate,
 				"end_date":    endDate,
+				"leave_type":  leaveType,
 			},
 			setupAuth: func(t *testing.T, req *http.Request, email string) {
 				AddAuth(t, req, email)
@@ -94,8 +96,7 @@ func TestServer_createLeave(t *testing.T) {
 					Return(model.Leave{
 						Description: description,
 						Status:      "pending",
-						StartDate:   startDate,
-						EndDate:     endDate,
+						LeaveType:   leaveType,
 					}, nil)
 			},
 			checkResponse: func(t *testing.T, res *http.Response) {
@@ -110,6 +111,7 @@ func TestServer_createLeave(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, fiber.StatusCreated, res.StatusCode)
 				assert.Equal(t, "pending", result.Data.Status)
+				assert.Equal(t, leaveType, result.Data.LeaveType)
 
 			},
 		},

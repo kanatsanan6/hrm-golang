@@ -14,12 +14,14 @@ func TestSQLQueries_CreateLeave(t *testing.T) {
 	status := "pending"
 	startDate := time.Now()
 	endDate := time.Now().Add(24 * time.Hour)
+	leaveType := "vacation_leave"
 
 	args := queries.CreateLeaveArgs{
 		Description: description,
 		Status:      status,
 		StartDate:   startDate,
 		EndDate:     endDate,
+		LeaveType:   leaveType,
 	}
 	leave, err := testQueries.CreateLeave(args)
 
@@ -28,4 +30,5 @@ func TestSQLQueries_CreateLeave(t *testing.T) {
 	assert.Equal(t, status, leave.Status)
 	assert.Equal(t, startDate, leave.StartDate)
 	assert.Equal(t, endDate, leave.EndDate)
+	assert.Equal(t, leaveType, leave.LeaveType)
 }

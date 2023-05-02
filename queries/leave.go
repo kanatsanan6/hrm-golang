@@ -11,6 +11,7 @@ type CreateLeaveArgs struct {
 	Status      string
 	StartDate   time.Time
 	EndDate     time.Time
+	LeaveType   string
 }
 
 func (q *SQLQueries) CreateLeave(args CreateLeaveArgs) (model.Leave, error) {
@@ -19,6 +20,7 @@ func (q *SQLQueries) CreateLeave(args CreateLeaveArgs) (model.Leave, error) {
 		Status:      args.Status,
 		StartDate:   args.StartDate,
 		EndDate:     args.EndDate,
+		LeaveType:   args.LeaveType,
 	}
 
 	if err := q.DB.Create(&leave).Error; err != nil {
