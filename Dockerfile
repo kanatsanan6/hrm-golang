@@ -20,6 +20,12 @@ COPY .env.example .
 
 RUN mv .env.example .env
 
+ARG DATABASE_USER
+ARG DATABASE_PASSWORD
+ARG DATABASE_HOST
+ARG DATABASE_PORT
+ARG DATABASE_NAME
+
 COPY start.sh .
 COPY wait-for.sh .
 COPY /migration ./migration

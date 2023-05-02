@@ -1,17 +1,10 @@
-# fly.toml app configuration file generated for hrm-golang on 2023-05-01T13:34:22+07:00
+# fly.toml app configuration file generated for hrm-golang on 2023-05-02T16:16:21+07:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
 app = "hrm-golang"
-primary_region = "sin"
-
-[build]
-  builder = "paketobuildpacks/builder:base"
-  buildpacks = ["gcr.io/paketo-buildpacks/go"]
-
-[env]
-  PORT = "3031"
+primary_region = "nrt"
 
 [http_service]
   internal_port = 3031
