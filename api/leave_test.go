@@ -26,9 +26,7 @@ func TestServer_createLeave(t *testing.T) {
 
 	description := utils.RandomString(10)
 	startDate := time.Now()
-	startPeriod := "full"
 	endDate := time.Now().Add(24 * time.Hour)
-	endPeriod := "full"
 
 	testCases := []struct {
 		name          string
@@ -62,11 +60,9 @@ func TestServer_createLeave(t *testing.T) {
 		{
 			name: "Cannot create leave",
 			body: fiber.Map{
-				"description":  description,
-				"start_date":   startDate,
-				"start_period": startPeriod,
-				"end_date":     endDate,
-				"end_period":   endPeriod,
+				"description": description,
+				"start_date":  startDate,
+				"end_date":    endDate,
 			},
 			setupAuth: func(t *testing.T, req *http.Request, email string) {
 				AddAuth(t, req, email)
@@ -84,11 +80,9 @@ func TestServer_createLeave(t *testing.T) {
 		{
 			name: "OK",
 			body: fiber.Map{
-				"description":  description,
-				"start_date":   startDate,
-				"start_period": startPeriod,
-				"end_date":     endDate,
-				"end_period":   endPeriod,
+				"description": description,
+				"start_date":  startDate,
+				"end_date":    endDate,
 			},
 			setupAuth: func(t *testing.T, req *http.Request, email string) {
 				AddAuth(t, req, email)
@@ -102,8 +96,6 @@ func TestServer_createLeave(t *testing.T) {
 						Status:      "pending",
 						StartDate:   startDate,
 						EndDate:     endDate,
-						StartPeriod: startPeriod,
-						EndPeriod:   endPeriod,
 					}, nil)
 			},
 			checkResponse: func(t *testing.T, res *http.Response) {
@@ -118,8 +110,6 @@ func TestServer_createLeave(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, fiber.StatusCreated, res.StatusCode)
 				assert.Equal(t, "pending", result.Data.Status)
-				assert.Equal(t, startPeriod, result.Data.StartPeriod)
-				assert.Equal(t, endPeriod, result.Data.EndPeriod)
 
 			},
 		},

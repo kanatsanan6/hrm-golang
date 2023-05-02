@@ -14,9 +14,7 @@ type LeaveType struct {
 	Description string    `json:"description"`
 	Status      string    `json:"status"`
 	StartDate   time.Time `json:"start_date"`
-	StartPeriod string    `json:"start_period"`
 	EndDate     time.Time `json:"end_date"`
-	EndPeriod   string    `json:"end_period"`
 	CreatedAt   time.Time `gorm:"autoCreateTime"`
 	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
 }
@@ -27,9 +25,7 @@ func leaveResponse(leave model.Leave) LeaveType {
 		Description: leave.Description,
 		Status:      leave.Status,
 		StartDate:   leave.StartDate,
-		StartPeriod: leave.StartPeriod,
 		EndDate:     leave.EndDate,
-		EndPeriod:   leave.EndPeriod,
 		CreatedAt:   leave.CreatedAt,
 		UpdatedAt:   leave.UpdatedAt,
 	}
@@ -38,9 +34,7 @@ func leaveResponse(leave model.Leave) LeaveType {
 type LeaveBody struct {
 	Description string    `json:"description" validate:"required"`
 	StartDate   time.Time `json:"start_date" validate:"required"`
-	StartPeriod string    `json:"start_period" validate:"required"`
 	EndDate     time.Time `json:"end_date" validate:"required"`
-	EndPeriod   string    `json:"end_period" validate:"required"`
 }
 
 func (s *Server) createLeave(c *fiber.Ctx) error {
@@ -57,9 +51,7 @@ func (s *Server) createLeave(c *fiber.Ctx) error {
 		Description: body.Description,
 		Status:      "pending",
 		StartDate:   body.StartDate,
-		StartPeriod: body.StartPeriod,
 		EndDate:     body.EndDate,
-		EndPeriod:   body.EndPeriod,
 	})
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
