@@ -15,20 +15,19 @@ jobs:
       - uses: actions/checkout@v3
       - name: Environment Variable
         run: |
-          echo DATABASE_HOST=${{ secrets.DATABASE_HOST }} >> .env
-          echo DATABASE_NAME=${{ secrets.DATABASE_NAME }} >> .env
-          echo DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} >> .env
-          echo DATABASE_PORT=${{ secrets.DATABASE_PORT }} >> .env
-          echo DATABASE_USER=${{ secrets.DATABASE_USER }} >> .env
-          echo FRONTEND_URL=${{ secrets.FRONTEND_URL }} >> .env
-          echo MAILER_HOST=${{ secrets.MAILER_HOST }} >> .env
-          echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env
-          echo MAILER_PASSWORD=${{ secrets.MAILER_PASSWORD }} >> .env
-          echo MAILER_PORT=${{ secrets.MAILER_PORT }} >> .env
-          echo MAILER_USERNAME=${{ secrets.MAILER_USERNAME }} >> .env
-          echo PORT=${{ secrets.PORT }} >> .env
-          ls
-          cat .env
+          echo DATABASE_HOST=${{ secrets.DATABASE_HOST }} >> .env.example
+          echo DATABASE_NAME=${{ secrets.DATABASE_NAME }} >> .env.example
+          echo DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} >> .env.example
+          echo DATABASE_PORT=${{ secrets.DATABASE_PORT }} >> .env.example
+          echo DATABASE_USER=${{ secrets.DATABASE_USER }} >> .env.example
+          echo FRONTEND_URL=${{ secrets.FRONTEND_URL }} >> .env.example
+          echo MAILER_HOST=${{ secrets.MAILER_HOST }} >> .env.example
+          echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env.example
+          echo MAILER_PASSWORD=${{ secrets.MAILER_PASSWORD }} >> .env.example
+          echo MAILER_PORT=${{ secrets.MAILER_PORT }} >> .env.example
+          echo MAILER_USERNAME=${{ secrets.MAILER_USERNAME }} >> .env.example
+          echo PORT=${{ secrets.PORT }} >> .env.example
+          cat .env.example
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
 
