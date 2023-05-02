@@ -50,6 +50,21 @@ func (mr *MockQueriesMockRecorder) CreateCompany(arg0 interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCompany", reflect.TypeOf((*MockQueries)(nil).CreateCompany), arg0)
 }
 
+// CreateLeave mocks base method.
+func (m *MockQueries) CreateLeave(arg0 queries.CreateLeaveArgs) (model.Leave, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateLeave", arg0)
+	ret0, _ := ret[0].(model.Leave)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateLeave indicates an expected call of CreateLeave.
+func (mr *MockQueriesMockRecorder) CreateLeave(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateLeave", reflect.TypeOf((*MockQueries)(nil).CreateLeave), arg0)
+}
+
 // CreateUser mocks base method.
 func (m *MockQueries) CreateUser(arg0 queries.CreateUserArgs) (model.User, error) {
 	m.ctrl.T.Helper()

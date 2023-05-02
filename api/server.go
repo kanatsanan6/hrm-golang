@@ -46,6 +46,8 @@ func (s *Server) setupRouter() {
 	v1.Post("/invite", s.inviteUser)
 	v1.Delete("/company/users/:id", s.deleteUser)
 
+	v1.Post("/company/leaves", s.createLeave)
+
 	s.Router = app
 }
 

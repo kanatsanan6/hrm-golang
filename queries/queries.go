@@ -16,6 +16,7 @@ type Queries interface {
 	UpdateUserPassword(user model.User, hash string) error
 	CreateCompany(args CreateCompanyArgs) (model.Company, error)
 	FindCompanyByID(id uint) (model.Company, error)
+	CreateLeave(args CreateLeaveArgs) (model.Leave, error)
 }
 
 type SQLQueries struct {
