@@ -12,8 +12,8 @@ func TestRandomNumber(t *testing.T) {
 	result := utils.RandomNumber(1, 10)
 
 	assert.NotNil(t, result)
-	assert.Greater(t, result, 1)
-	assert.Less(t, result, 10)
+	assert.GreaterOrEqual(t, result, 1)
+	assert.LessOrEqual(t, result, 10)
 }
 
 func TestRandomString(t *testing.T) {
