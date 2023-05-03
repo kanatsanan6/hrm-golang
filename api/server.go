@@ -41,12 +41,16 @@ func (s *Server) setupRouter() {
 	v1.Use(s.AuthMiddleware(), s.MeMiddleware())
 
 	v1.Get("/me", s.me)
-	v1.Post("/company", s.createCompany)
-	v1.Get("/company/users", s.getUsers)
 	v1.Post("/invite", s.inviteUser)
-	v1.Delete("/company/users/:id", s.deleteUser)
 
-	v1.Post("/company/leaves", s.createLeave)
+	company := v1.Group("/company")
+
+	company.Post("/", s.createCompany)
+	company.Get("/users", s.getUsers)
+	company.Delete("/users/:id", s.deleteUser)
+
+	company.Get("/leaves", s.getLeaves)
+	company.Post("/leaves", s.createLeave)
 
 	s.Router = app
 }

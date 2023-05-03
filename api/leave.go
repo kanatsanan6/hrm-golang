@@ -16,8 +16,8 @@ type LeaveType struct {
 	StartDate   time.Time `json:"start_date"`
 	EndDate     time.Time `json:"end_date"`
 	LeaveType   string    `json:"leave_type"`
-	CreatedAt   time.Time `gorm:"autoCreateTime"`
-	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 func leaveResponse(leave model.Leave) LeaveType {
@@ -60,16 +60,25 @@ func (s *Server) createLeave(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusBadRequest, err)
 	}
 
+	user := c.Locals("user").(model.User)
+
 	leave, err := s.Queries.CreateLeave(queries.CreateLeaveArgs{
 		Description: body.Description,
 		Status:      "pending",
 		StartDate:   startDate,
 		EndDate:     endDate,
 		LeaveType:   body.LeaveType,
+		UserID:      user.ID,
 	})
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
 	}
 
 	return utils.JsonResponse(c, fiber.StatusCreated, leaveResponse(leave))
+}
+
+func (s *Server) getLeaves(c *fiber.Ctx) error {
+	user := c.Locals("user").(model.User)
+	leaves := s.Queries.GetLeaves(&user)
+	return utils.JsonResponse(c, fiber.StatusOK, leaves)
 }

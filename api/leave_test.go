@@ -8,11 +8,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang/mock/gomock"
 	"github.com/kanatsanan6/hrm/api"
 	"github.com/kanatsanan6/hrm/model"
+	"github.com/kanatsanan6/hrm/queries"
 	mock_queries "github.com/kanatsanan6/hrm/queries/mock"
 	mock_service "github.com/kanatsanan6/hrm/service/mock"
 	"github.com/kanatsanan6/hrm/utils"
@@ -135,6 +137,92 @@ func TestServer_createLeave(t *testing.T) {
 
 			req := httptest.NewRequest("POST", "/api/v1/company/leaves", bytes.NewBuffer(data))
 			tc.setupAuth(t, req, email)
+
+			res, _ := server.Router.Test(req, -1)
+			tc.checkResponse(t, res)
+		})
+	}
+}
+
+func TestServer_getLeaves(t *testing.T) {
+	user := GenerateUser(nil)
+	leave1 := queries.LeaveType{
+		ID:          1,
+		Description: utils.RandomString(10),
+		Status:      "pending",
+		StartDate:   time.Date(2023, 01, 01, 0, 0, 0, 0, time.UTC),
+		EndDate:     time.Date(2023, 01, 02, 0, 0, 0, 0, time.UTC),
+		LeaveType:   "vacation_leave",
+		CreatedAt:   time.Date(2023, 01, 01, 0, 0, 0, 0, time.UTC),
+		UpdatedAt:   time.Date(2023, 01, 01, 0, 0, 0, 0, time.UTC),
+	}
+	leave2 := queries.LeaveType{
+		ID:          2,
+		Description: utils.RandomString(10),
+		Status:      "pending",
+		StartDate:   time.Date(2023, 01, 01, 0, 0, 0, 0, time.UTC),
+		EndDate:     time.Date(2023, 01, 02, 0, 0, 0, 0, time.UTC),
+		LeaveType:   "vacation_leave",
+		CreatedAt:   time.Date(2023, 01, 01, 0, 0, 0, 0, time.UTC),
+		UpdatedAt:   time.Date(2023, 01, 01, 0, 0, 0, 0, time.UTC),
+	}
+	testCases := []struct {
+		name          string
+		setupAuth     func(t *testing.T, req *http.Request, email string)
+		buildStub     func(q *mock_queries.MockQueries, p *mock_service.MockPolicyInterface)
+		checkResponse func(t *testing.T, res *http.Response)
+	}{
+		{
+			name:      "Unauthorized",
+			setupAuth: func(t *testing.T, req *http.Request, email string) {},
+			buildStub: func(q *mock_queries.MockQueries, p *mock_service.MockPolicyInterface) {},
+			checkResponse: func(t *testing.T, res *http.Response) {
+				assert.Equal(t, fiber.StatusUnauthorized, res.StatusCode)
+			},
+		},
+		{
+			name: "OK",
+			setupAuth: func(t *testing.T, req *http.Request, email string) {
+				AddAuth(t, req, email)
+			},
+			buildStub: func(q *mock_queries.MockQueries, p *mock_service.MockPolicyInterface) {
+				MockMe(q, *user, user.Email)
+				q.EXPECT().
+					GetLeaves(gomock.Any()).
+					Times(1).
+					Return([]queries.LeaveType{leave1, leave2})
+			},
+			checkResponse: func(t *testing.T, res *http.Response) {
+				var result struct {
+					Data []queries.LeaveType `json:"data"`
+				}
+				body, err := io.ReadAll(res.Body)
+				assert.NoError(t, err)
+
+				err = json.Unmarshal(body, &result)
+				assert.NoError(t, err)
+				assert.Equal(t, fiber.StatusOK, res.StatusCode)
+				assert.Equal(t, 1, int(result.Data[0].ID))
+				assert.Equal(t, 2, int(result.Data[1].ID))
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			q := mock_queries.NewMockQueries(ctrl)
+			p := mock_service.NewMockPolicyInterface(ctrl)
+			tc.buildStub(q, p)
+
+			server := api.NewServer(q, p)
+
+			req := httptest.NewRequest("GET", "/api/v1/company/leaves", nil)
+			tc.setupAuth(t, req, user.Email)
 
 			res, _ := server.Router.Test(req, -1)
 			tc.checkResponse(t, res)

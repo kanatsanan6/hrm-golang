@@ -17,6 +17,7 @@ type Queries interface {
 	CreateCompany(args CreateCompanyArgs) (model.Company, error)
 	FindCompanyByID(id uint) (model.Company, error)
 	CreateLeave(args CreateLeaveArgs) (model.Leave, error)
+	GetLeaves(user *model.User) []LeaveType
 }
 
 type SQLQueries struct {

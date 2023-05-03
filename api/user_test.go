@@ -20,12 +20,14 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func GenerateUser(hash string, companyId *uint) *model.User {
+func GenerateUser(companyId *uint) *model.User {
 	return &model.User{
 		ID:                uint(utils.RandomNumber(1, 10)),
+		FirstName:         utils.RandomString(10),
+		LastName:          utils.RandomString(10),
 		Email:             utils.RandomEmail(),
 		CompanyID:         companyId,
-		EncryptedPassword: hash,
+		EncryptedPassword: utils.RandomString(16),
 	}
 
 }
@@ -131,7 +133,7 @@ func TestServer_signIn(t *testing.T) {
 	password := utils.RandomString(10)
 	hash, _ := utils.Encrypt(password)
 
-	user := GenerateUser(hash, nil)
+	user := &model.User{Email: utils.RandomEmail(), EncryptedPassword: hash}
 	email := user.Email
 
 	testCases := []struct {
