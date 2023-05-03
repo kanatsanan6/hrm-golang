@@ -61,7 +61,6 @@ func (s *Server) createLeave(c *fiber.Ctx) error {
 	}
 
 	user := c.Locals("user").(model.User)
-
 	leave, err := s.Queries.CreateLeave(queries.CreateLeaveArgs{
 		Description: body.Description,
 		Status:      "pending",
