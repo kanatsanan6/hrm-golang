@@ -12,13 +12,13 @@ import (
 type Server struct {
 	Router  *fiber.App
 	Queries queries.Queries
-	Policy  service.PolicyInterface
+	Service service.Service
 }
 
-func NewServer(q queries.Queries, p service.PolicyInterface) *Server {
+func NewServer(q queries.Queries, s service.Service) *Server {
 	server := &Server{
 		Queries: q,
-		Policy:  p,
+		Service: s,
 	}
 
 	server.setupRouter()

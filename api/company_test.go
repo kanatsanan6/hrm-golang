@@ -174,10 +174,10 @@ func TestServer_createCompany(t *testing.T) {
 			defer ctrl.Finish()
 
 			q := mock_queries.NewMockQueries(ctrl)
-			p := mock_service.NewMockPolicyInterface(ctrl)
+			s := mock_service.NewMockService(ctrl)
 			tc.buildStub(q)
 
-			server := api.NewServer(q, p)
+			server := api.NewServer(q, s)
 			app := server.Router
 			ctx := app.AcquireCtx(&fasthttp.RequestCtx{})
 
@@ -314,10 +314,10 @@ func TestServer_getUsers(t *testing.T) {
 			defer ctrl.Finish()
 
 			q := mock_queries.NewMockQueries(ctrl)
-			p := mock_service.NewMockPolicyInterface(ctrl)
+			s := mock_service.NewMockService(ctrl)
 			tc.buildStub(q)
 
-			server := api.NewServer(q, p)
+			server := api.NewServer(q, s)
 			app := server.Router
 			ctx := app.AcquireCtx(&fasthttp.RequestCtx{})
 

@@ -31,9 +31,9 @@ func main() {
 	)
 
 	q := queries.NewQueries(db)
-	p := service.NewPolicy()
+	s := service.NewService()
 
-	server := api.NewServer(q, p)
+	server := api.NewServer(q, s)
 
 	server.Start(os.Getenv("PORT"))
 }

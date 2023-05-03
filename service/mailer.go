@@ -1,7 +1,6 @@
 package service
 
 import (
-	"log"
 	"os"
 	"strings"
 
@@ -9,7 +8,11 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-type Mailer struct{}
+type Mailer interface {
+	Send(to string, subject string, messageBody string) error
+}
+
+type mailer struct{}
 
 func removePlus(email string) string {
 	if strings.Contains(email, "+") {
@@ -20,12 +23,15 @@ func removePlus(email string) string {
 	}
 }
 
-func (m *Mailer) Send(to string, subject string, message *gomail.Message) {
+func (m *mailer) Send(to string, subject string, messageBody string) error {
+	message := gomail.NewMessage()
 	message.SetHeader("From", os.Getenv("MAILER_USERNAME"))
 	message.SetHeader("To", removePlus(to))
 	message.SetHeader("Subject", subject)
+	message.SetBody("text/html", messageBody)
 
 	if err := config.Mailer.DialAndSend(message); err != nil {
-		log.Panicln("[Mailer] ", err)
+		return err
 	}
+	return nil
 }
