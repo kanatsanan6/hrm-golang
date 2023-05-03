@@ -34,7 +34,7 @@ func generateCompany() *model.Company {
 func TestServer_createCompany(t *testing.T) {
 	email := "kanatsanan.j1998@gmail.com"
 	company := generateCompany()
-	user := GenerateUser(utils.RandomString(10), &company.ID)
+	user := GenerateUser(&company.ID)
 
 	testCases := []struct {
 		name          string

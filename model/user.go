@@ -15,6 +15,7 @@ type User struct {
 	ResetPasswordToken *string
 	CompanyID          *uint
 	Role               string
+	Leaves             []Leave
 	Company            Company   `gorm:"foreignKey:CompanyID"`
 	CreatedAt          time.Time `gorm:"autoCreateTime"`
 	UpdatedAt          time.Time `gorm:"autoUpdateTime"`

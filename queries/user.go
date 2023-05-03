@@ -46,7 +46,13 @@ func (q *SQLQueries) FindUserByID(id uint) (model.User, error) {
 
 func (q *SQLQueries) FindUserByEmail(email string) (model.User, error) {
 	var user model.User
-	if err := q.DB.Where("Email = ?", email).Preload("Company").First(&user).Error; err != nil {
+	err := q.DB.Where("Email = ?", email).
+		Preload("Company").
+		Preload("Leaves").
+		First(&user).
+		Error
+
+	if err != nil {
 		return model.User{}, err
 	}
 	return user, nil
