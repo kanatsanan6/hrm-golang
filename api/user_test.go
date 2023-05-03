@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -645,6 +646,213 @@ func TestServer_forgetPassword(t *testing.T) {
 
 			req := httptest.NewRequest("POST", "/api/v1/forget_password", bytes.NewBuffer(data))
 			req.Header.Set("Content-Type", "application/json")
+
+			res, _ := server.Router.Test(req, -1)
+			tc.checkResponse(t, res)
+		})
+	}
+}
+
+func TestServer_resetPassword(t *testing.T) {
+	password := utils.RandomString(10)
+	token := utils.RandomString(16)
+	body := fiber.Map{"password": password, "token": token}
+	user := GenerateUser(nil)
+
+	testCases := []struct {
+		name          string
+		body          fiber.Map
+		buildStub     func(q *mock_queries.MockQueries)
+		checkResponse func(t *testing.T, res *http.Response)
+	}{
+		{
+			name:      "BadRequest",
+			body:      fiber.Map{},
+			buildStub: func(q *mock_queries.MockQueries) {},
+			checkResponse: func(t *testing.T, res *http.Response) {
+				assert.Equal(t, fiber.StatusBadRequest, res.StatusCode)
+			},
+		},
+		{
+			name: "Invalid Token",
+			body: body,
+			buildStub: func(q *mock_queries.MockQueries) {
+				q.EXPECT().
+					FindUserByForgetPasswordToken(gomock.Eq(token)).
+					Return(model.User{}, errors.New("error"))
+			},
+			checkResponse: func(t *testing.T, res *http.Response) {
+				assert.Equal(t, fiber.StatusUnauthorized, res.StatusCode)
+			},
+		},
+		{
+			name: "Cannot update password",
+			body: body,
+			buildStub: func(q *mock_queries.MockQueries) {
+				q.EXPECT().
+					FindUserByForgetPasswordToken(gomock.Eq(token)).
+					Return(*user, nil)
+				q.EXPECT().
+					UpdateUserPassword(*user, gomock.Any()).
+					Return(errors.New("error"))
+			},
+			checkResponse: func(t *testing.T, res *http.Response) {
+				assert.Equal(t, fiber.StatusUnprocessableEntity, res.StatusCode)
+			},
+		},
+		{
+			name: "OK",
+			body: body,
+			buildStub: func(q *mock_queries.MockQueries) {
+				q.EXPECT().
+					FindUserByForgetPasswordToken(gomock.Eq(token)).
+					Return(*user, nil)
+				q.EXPECT().
+					UpdateUserPassword(*user, gomock.Any()).
+					Return(nil)
+			},
+			checkResponse: func(t *testing.T, res *http.Response) {
+				assert.Equal(t, fiber.StatusOK, res.StatusCode)
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			q := mock_queries.NewMockQueries(ctrl)
+			s := mock_service.NewMockService(ctrl)
+			tc.buildStub(q)
+
+			server := api.NewServer(q, s)
+
+			data, err := json.Marshal(tc.body)
+			assert.NoError(t, err)
+
+			req := httptest.NewRequest("PUT", "/api/v1/reset_password", bytes.NewBuffer(data))
+			req.Header.Set("Content-Type", "application/json")
+
+			res, _ := server.Router.Test(req, -1)
+			tc.checkResponse(t, res)
+		})
+	}
+}
+
+func TestServer_deleteUser(t *testing.T) {
+	email := "kanatsanan.j1998@gmail.com"
+	id := uint(utils.RandomNumber(1, 10))
+	user := GenerateUser(nil)
+
+	testCases := []struct {
+		name          string
+		setupAuth     func(t *testing.T, req *http.Request, email string)
+		buildStub     func(q *mock_queries.MockQueries, s *mock_service.MockService)
+		checkResponse func(t *testing.T, res *http.Response)
+	}{
+		{
+			name:      "Unauthorized",
+			setupAuth: func(t *testing.T, req *http.Request, email string) {},
+			buildStub: func(q *mock_queries.MockQueries, s *mock_service.MockService) {},
+			checkResponse: func(t *testing.T, res *http.Response) {
+				assert.Equal(t, fiber.StatusUnauthorized, res.StatusCode)
+			},
+		},
+		{
+			name: "Unauthorized 2",
+			setupAuth: func(t *testing.T, req *http.Request, email string) {
+				AddAuth(t, req, email)
+			},
+			buildStub: func(q *mock_queries.MockQueries, s *mock_service.MockService) {
+				MockMe(q, *user, email)
+				s.EXPECT().
+					Authorize(gomock.Any(), "user_management", "delete").
+					Return(false)
+			},
+			checkResponse: func(t *testing.T, res *http.Response) {
+				assert.Equal(t, fiber.StatusUnauthorized, res.StatusCode)
+			},
+		},
+		{
+			name: "User Not found",
+			setupAuth: func(t *testing.T, req *http.Request, email string) {
+				AddAuth(t, req, email)
+			},
+			buildStub: func(q *mock_queries.MockQueries, s *mock_service.MockService) {
+				MockMe(q, *user, email)
+				s.EXPECT().
+					Authorize(gomock.Any(), "user_management", "delete").
+					Return(true)
+				q.EXPECT().
+					FindUserByID(gomock.Eq(id)).
+					Return(model.User{}, errors.New("error"))
+			},
+			checkResponse: func(t *testing.T, res *http.Response) {
+				assert.Equal(t, fiber.StatusNotFound, res.StatusCode)
+			},
+		},
+		{
+			name: "Cannot delete user",
+			setupAuth: func(t *testing.T, req *http.Request, email string) {
+				AddAuth(t, req, email)
+			},
+			buildStub: func(q *mock_queries.MockQueries, s *mock_service.MockService) {
+				MockMe(q, *user, email)
+				s.EXPECT().
+					Authorize(gomock.Any(), "user_management", "delete").
+					Return(true)
+				q.EXPECT().
+					FindUserByID(gomock.Eq(id)).
+					Return(*user, nil)
+				q.EXPECT().
+					DeleteUser(*user).
+					Return(errors.New("errors"))
+			},
+			checkResponse: func(t *testing.T, res *http.Response) {
+				assert.Equal(t, fiber.StatusUnprocessableEntity, res.StatusCode)
+			},
+		},
+		{
+			name: "OK",
+			setupAuth: func(t *testing.T, req *http.Request, email string) {
+				AddAuth(t, req, email)
+			},
+			buildStub: func(q *mock_queries.MockQueries, s *mock_service.MockService) {
+				MockMe(q, *user, email)
+				s.EXPECT().
+					Authorize(gomock.Any(), "user_management", "delete").
+					Return(true)
+				q.EXPECT().
+					FindUserByID(gomock.Eq(id)).
+					Return(*user, nil)
+				q.EXPECT().
+					DeleteUser(*user).
+					Return(nil)
+			},
+			checkResponse: func(t *testing.T, res *http.Response) {
+				assert.Equal(t, fiber.StatusNoContent, res.StatusCode)
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			q := mock_queries.NewMockQueries(ctrl)
+			s := mock_service.NewMockService(ctrl)
+			tc.buildStub(q, s)
+
+			server := api.NewServer(q, s)
+
+			req := httptest.NewRequest("DELETE", fmt.Sprintf("/api/v1/company/users/%d", id), nil)
+			tc.setupAuth(t, req, email)
 
 			res, _ := server.Router.Test(req, -1)
 			tc.checkResponse(t, res)
