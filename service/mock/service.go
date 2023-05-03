@@ -9,7 +9,6 @@ import (
 
 	fiber "github.com/gofiber/fiber/v2"
 	gomock "github.com/golang/mock/gomock"
-	gomail "gopkg.in/gomail.v2"
 )
 
 // MockService is a mock of Service interface.
@@ -64,9 +63,11 @@ func (mr *MockServiceMockRecorder) Export(arg0 interface{}) *gomock.Call {
 }
 
 // Send mocks base method.
-func (m *MockService) Send(arg0, arg1 string, arg2 *gomail.Message) {
+func (m *MockService) Send(arg0, arg1, arg2 string) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Send", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "Send", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Send indicates an expected call of Send.

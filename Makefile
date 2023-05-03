@@ -4,10 +4,10 @@ migrateup:
 migratedown:
 	migrate -path migration -database "postgresql://postgres:secret@localhost:5432/hrm_development?sslmode=disable" -verbose down
 
-genqueries:
+mockgen_queries:
 	mockgen --destination queries/mock/queries.go github.com/kanatsanan6/hrm/queries Queries
 
-genpolicy:
-	mockgen --destination service/mock/policy.go github.com/kanatsanan6/hrm/service PolicyInterface
+mockgen_service:
+	mockgen --destination service/mock/service.go github.com/kanatsanan6/hrm/service Service
 
-.PHONY: migrateup migratedown genqueries genpolicy
+.PHONY: migrateup migratedown mockgen_queries mockgen_service
