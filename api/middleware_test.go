@@ -82,8 +82,8 @@ func TestAuthMiddleware(t *testing.T) {
 			defer ctrl.Finish()
 
 			q := mock_queries.NewMockQueries(ctrl)
-			p := mock_service.NewMockPolicyInterface(ctrl)
-			server := api.NewServer(q, p)
+			s := mock_service.NewMockService(ctrl)
+			server := api.NewServer(q, s)
 			app := server.Router
 
 			app.Use(server.AuthMiddleware())
@@ -166,8 +166,8 @@ func TestMeMiddleware(t *testing.T) {
 			defer ctrl.Finish()
 
 			q := mock_queries.NewMockQueries(ctrl)
-			p := mock_service.NewMockPolicyInterface(ctrl)
-			server := api.NewServer(q, p)
+			s := mock_service.NewMockService(ctrl)
+			server := api.NewServer(q, s)
 			app := server.Router
 
 			app.Use(server.AuthMiddleware(), server.MeMiddleware())

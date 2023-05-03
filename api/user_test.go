@@ -111,10 +111,10 @@ func TestServer_signUp(t *testing.T) {
 			defer ctrl.Finish()
 
 			q := mock_queries.NewMockQueries(ctrl)
-			p := mock_service.NewMockPolicyInterface(ctrl)
-			tc.buildStub(q)
+			s := mock_service.NewMockService(ctrl)
 
-			server := api.NewServer(q, p)
+			server := api.NewServer(q, s)
+			tc.buildStub(q)
 
 			data, err := json.Marshal(tc.body)
 			assert.NoError(t, err)
@@ -123,7 +123,6 @@ func TestServer_signUp(t *testing.T) {
 			req.Header.Set("Content-Type", "application/json")
 
 			res, _ := server.Router.Test(req, -1)
-
 			tc.checkResponse(t, res)
 		})
 	}
@@ -222,10 +221,10 @@ func TestServer_signIn(t *testing.T) {
 			defer ctrl.Finish()
 
 			q := mock_queries.NewMockQueries(ctrl)
-			p := mock_service.NewMockPolicyInterface(ctrl)
+			s := mock_service.NewMockService(ctrl)
 			tc.buildStub(q)
 
-			server := api.NewServer(q, p)
+			server := api.NewServer(q, s)
 
 			data, err := json.Marshal(tc.body)
 			assert.NoError(t, err)
@@ -246,13 +245,13 @@ func TestServer_me(t *testing.T) {
 	testCases := []struct {
 		name          string
 		setupAuth     func(t *testing.T, req *http.Request, email string)
-		buildStub     func(q *mock_queries.MockQueries)
+		buildStub     func(q *mock_queries.MockQueries, s *mock_service.MockService)
 		checkResponse func(t *testing.T, res *http.Response)
 	}{
 		{
 			name:      "Unauthorized",
 			setupAuth: func(t *testing.T, req *http.Request, email string) {},
-			buildStub: func(q *mock_queries.MockQueries) {},
+			buildStub: func(q *mock_queries.MockQueries, s *mock_service.MockService) {},
 			checkResponse: func(t *testing.T, res *http.Response) {
 				assert.Equal(t, fiber.StatusUnauthorized, res.StatusCode)
 			},
@@ -262,7 +261,7 @@ func TestServer_me(t *testing.T) {
 			setupAuth: func(t *testing.T, req *http.Request, email string) {
 				AddAuth(t, req, email)
 			},
-			buildStub: func(q *mock_queries.MockQueries) {
+			buildStub: func(q *mock_queries.MockQueries, s *mock_service.MockService) {
 				q.EXPECT().
 					FindUserByEmail(email).
 					Return(model.User{}, errors.New("not_found"))
@@ -276,10 +275,13 @@ func TestServer_me(t *testing.T) {
 			setupAuth: func(t *testing.T, req *http.Request, email string) {
 				AddAuth(t, req, email)
 			},
-			buildStub: func(q *mock_queries.MockQueries) {
+			buildStub: func(q *mock_queries.MockQueries, s *mock_service.MockService) {
 				q.EXPECT().
 					FindUserByEmail(email).
 					Return(model.User{}, nil)
+				s.EXPECT().
+					Export(gomock.Any()).
+					Return([]map[string]string{{"key": "value"}})
 			},
 			checkResponse: func(t *testing.T, res *http.Response) {
 				assert.Equal(t, fiber.StatusOK, res.StatusCode)
@@ -295,10 +297,10 @@ func TestServer_me(t *testing.T) {
 			defer ctrl.Finish()
 
 			q := mock_queries.NewMockQueries(ctrl)
-			p := mock_service.NewMockPolicyInterface(ctrl)
-			tc.buildStub(q)
+			s := mock_service.NewMockService(ctrl)
+			tc.buildStub(q, s)
 
-			server := api.NewServer(q, p)
+			server := api.NewServer(q, s)
 			app := server.Router
 			ctx := app.AcquireCtx(&fasthttp.RequestCtx{})
 
@@ -325,14 +327,14 @@ func TestServer_inviteUser(t *testing.T) {
 		name          string
 		body          fiber.Map
 		setupAuth     func(t *testing.T, req *http.Request, email string)
-		buildStub     func(q *mock_queries.MockQueries, s *mock_service.MockPolicyInterface)
+		buildStub     func(q *mock_queries.MockQueries, s *mock_service.MockService)
 		checkResponse func(t *testing.T, res *http.Response)
 	}{
 		{
 			name:      "Unauthorized",
 			body:      fiber.Map{},
 			setupAuth: func(t *testing.T, req *http.Request, email string) {},
-			buildStub: func(q *mock_queries.MockQueries, s *mock_service.MockPolicyInterface) {},
+			buildStub: func(q *mock_queries.MockQueries, s *mock_service.MockService) {},
 			checkResponse: func(t *testing.T, res *http.Response) {
 				assert.Equal(t, fiber.StatusUnauthorized, res.StatusCode)
 			},
@@ -343,9 +345,9 @@ func TestServer_inviteUser(t *testing.T) {
 			setupAuth: func(t *testing.T, req *http.Request, email string) {
 				AddAuth(t, req, email)
 			},
-			buildStub: func(q *mock_queries.MockQueries, p *mock_service.MockPolicyInterface) {
+			buildStub: func(q *mock_queries.MockQueries, s *mock_service.MockService) {
 				MockMe(q, *user, email)
-				p.EXPECT().
+				s.EXPECT().
 					Authorize(gomock.Any(), "user_management", "invite").
 					Return(false)
 			},
@@ -359,9 +361,9 @@ func TestServer_inviteUser(t *testing.T) {
 			setupAuth: func(t *testing.T, req *http.Request, email string) {
 				AddAuth(t, req, email)
 			},
-			buildStub: func(q *mock_queries.MockQueries, p *mock_service.MockPolicyInterface) {
+			buildStub: func(q *mock_queries.MockQueries, s *mock_service.MockService) {
 				MockMe(q, *user, email)
-				p.EXPECT().
+				s.EXPECT().
 					Authorize(gomock.Any(), "user_management", "invite").
 					Return(true)
 			},
@@ -375,9 +377,9 @@ func TestServer_inviteUser(t *testing.T) {
 			setupAuth: func(t *testing.T, req *http.Request, email string) {
 				AddAuth(t, req, email)
 			},
-			buildStub: func(q *mock_queries.MockQueries, p *mock_service.MockPolicyInterface) {
+			buildStub: func(q *mock_queries.MockQueries, s *mock_service.MockService) {
 				MockMe(q, *user, email)
-				p.EXPECT().
+				s.EXPECT().
 					Authorize(gomock.Any(), "user_management", "invite").
 					Return(true)
 				q.EXPECT().
@@ -394,9 +396,9 @@ func TestServer_inviteUser(t *testing.T) {
 			setupAuth: func(t *testing.T, req *http.Request, email string) {
 				AddAuth(t, req, email)
 			},
-			buildStub: func(q *mock_queries.MockQueries, p *mock_service.MockPolicyInterface) {
+			buildStub: func(q *mock_queries.MockQueries, s *mock_service.MockService) {
 				MockMe(q, *user, email)
-				p.EXPECT().
+				s.EXPECT().
 					Authorize(gomock.Any(), "user_management", "invite").
 					Return(true)
 				q.EXPECT().
@@ -413,9 +415,9 @@ func TestServer_inviteUser(t *testing.T) {
 			setupAuth: func(t *testing.T, req *http.Request, email string) {
 				AddAuth(t, req, email)
 			},
-			buildStub: func(q *mock_queries.MockQueries, p *mock_service.MockPolicyInterface) {
+			buildStub: func(q *mock_queries.MockQueries, s *mock_service.MockService) {
 				MockMe(q, *user, email)
-				p.EXPECT().
+				s.EXPECT().
 					Authorize(gomock.Any(), "user_management", "invite").
 					Return(true)
 				q.EXPECT().
@@ -435,9 +437,9 @@ func TestServer_inviteUser(t *testing.T) {
 			setupAuth: func(t *testing.T, req *http.Request, email string) {
 				AddAuth(t, req, email)
 			},
-			buildStub: func(q *mock_queries.MockQueries, p *mock_service.MockPolicyInterface) {
+			buildStub: func(q *mock_queries.MockQueries, s *mock_service.MockService) {
 				MockMe(q, *user, email)
-				p.EXPECT().
+				s.EXPECT().
 					Authorize(gomock.Any(), "user_management", "invite").
 					Return(true)
 				q.EXPECT().
@@ -464,8 +466,8 @@ func TestServer_inviteUser(t *testing.T) {
 			defer ctrl.Finish()
 
 			q := mock_queries.NewMockQueries(ctrl)
-			p := mock_service.NewMockPolicyInterface(ctrl)
-			server := api.NewServer(q, p)
+			s := mock_service.NewMockService(ctrl)
+			server := api.NewServer(q, s)
 			c := server.Router.AcquireCtx(&fasthttp.RequestCtx{})
 
 			companyId := uint(utils.RandomNumber(1, 10))
@@ -474,7 +476,7 @@ func TestServer_inviteUser(t *testing.T) {
 			}
 			c.Locals("users", currentUser)
 
-			tc.buildStub(q, p)
+			tc.buildStub(q, s)
 
 			data, err := json.Marshal(tc.body)
 			assert.NoError(t, err)

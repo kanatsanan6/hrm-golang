@@ -153,9 +153,8 @@ func meResponse(user model.User, policies []map[string]string) *MeType {
 
 func (s *Server) me(c *fiber.Ctx) error {
 	user := c.Locals("user").(model.User)
-	p := service.NewPolicy()
 
-	return utils.JsonResponse(c, fiber.StatusOK, meResponse(user, p.Export(c)))
+	return utils.JsonResponse(c, fiber.StatusOK, meResponse(user, s.Service.Export(c)))
 }
 
 type InviteUserBody struct {
@@ -165,7 +164,7 @@ type InviteUserBody struct {
 }
 
 func (s *Server) inviteUser(c *fiber.Ctx) error {
-	if authorized := s.Policy.Authorize(c, "user_management", "invite"); !authorized {
+	if authorized := s.Service.Authorize(c, "user_management", "invite"); !authorized {
 		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "unauthorized")
 	}
 
@@ -214,10 +213,9 @@ func (s *Server) inviteUser(c *fiber.Ctx) error {
 
 	// TODO: move this to worker
 	messsageBody := fmt.Sprintf("Please reset your password from this link: %s/reset-password/%s", os.Getenv("FRONTEND_URL"), token)
-	m := service.Mailer{}
 	message := gomail.NewMessage()
 	message.SetBody("text/html", messsageBody)
-	m.Send(body.Email, "[HRM] You are invited", message)
+	s.Service.Send(body.Email, "[HRM] You are invited", message)
 
 	return utils.JsonResponse(c, fiber.StatusCreated, userResponse(user))
 }
@@ -248,10 +246,9 @@ func (s *Server) forgetPassword(c *fiber.Ctx) error {
 
 	// TODO: move this to worker
 	messsageBody := fmt.Sprintf("Please reset your password from this link: %s/reset-password/%s", os.Getenv("FRONTEND_URL"), token)
-	m := service.Mailer{}
 	message := gomail.NewMessage()
 	message.SetBody("text/html", messsageBody)
-	m.Send(body.Email, "[HRM] Reset Password", message)
+	s.Service.Send(body.Email, "[HRM] Reset Password", message)
 
 	return utils.JsonResponse(c, fiber.StatusOK, userResponse(user))
 }
@@ -293,8 +290,7 @@ type DeleteUserBody struct {
 }
 
 func (s *Server) deleteUser(c *fiber.Ctx) error {
-	p := service.Policy{}
-	if authorized := p.Authorize(c, "user_management", "delete"); !authorized {
+	if authorized := s.Service.Authorize(c, "user_management", "delete"); !authorized {
 		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "unauthorized")
 	}
 

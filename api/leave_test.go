@@ -127,10 +127,10 @@ func TestServer_createLeave(t *testing.T) {
 			defer ctrl.Finish()
 
 			q := mock_queries.NewMockQueries(ctrl)
-			p := mock_service.NewMockPolicyInterface(ctrl)
+			s := mock_service.NewMockService(ctrl)
 			tc.buildStub(q)
 
-			server := api.NewServer(q, p)
+			server := api.NewServer(q, s)
 
 			data, err := json.Marshal(tc.body)
 			assert.NoError(t, err)
@@ -169,13 +169,13 @@ func TestServer_getLeaves(t *testing.T) {
 	testCases := []struct {
 		name          string
 		setupAuth     func(t *testing.T, req *http.Request, email string)
-		buildStub     func(q *mock_queries.MockQueries, p *mock_service.MockPolicyInterface)
+		buildStub     func(q *mock_queries.MockQueries)
 		checkResponse func(t *testing.T, res *http.Response)
 	}{
 		{
 			name:      "Unauthorized",
 			setupAuth: func(t *testing.T, req *http.Request, email string) {},
-			buildStub: func(q *mock_queries.MockQueries, p *mock_service.MockPolicyInterface) {},
+			buildStub: func(q *mock_queries.MockQueries) {},
 			checkResponse: func(t *testing.T, res *http.Response) {
 				assert.Equal(t, fiber.StatusUnauthorized, res.StatusCode)
 			},
@@ -185,7 +185,7 @@ func TestServer_getLeaves(t *testing.T) {
 			setupAuth: func(t *testing.T, req *http.Request, email string) {
 				AddAuth(t, req, email)
 			},
-			buildStub: func(q *mock_queries.MockQueries, p *mock_service.MockPolicyInterface) {
+			buildStub: func(q *mock_queries.MockQueries) {
 				MockMe(q, *user, user.Email)
 				q.EXPECT().
 					GetLeaves(gomock.Any()).
@@ -216,10 +216,10 @@ func TestServer_getLeaves(t *testing.T) {
 			defer ctrl.Finish()
 
 			q := mock_queries.NewMockQueries(ctrl)
-			p := mock_service.NewMockPolicyInterface(ctrl)
-			tc.buildStub(q, p)
+			s := mock_service.NewMockService(ctrl)
+			tc.buildStub(q)
 
-			server := api.NewServer(q, p)
+			server := api.NewServer(q, s)
 
 			req := httptest.NewRequest("GET", "/api/v1/company/leaves", nil)
 			tc.setupAuth(t, req, user.Email)

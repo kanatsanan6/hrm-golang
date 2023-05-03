@@ -9,7 +9,11 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-type Mailer struct{}
+type Mailer interface {
+	Send(to string, subject string, message *gomail.Message)
+}
+
+type mailer struct{}
 
 func removePlus(email string) string {
 	if strings.Contains(email, "+") {
@@ -20,7 +24,7 @@ func removePlus(email string) string {
 	}
 }
 
-func (m *Mailer) Send(to string, subject string, message *gomail.Message) {
+func (m *mailer) Send(to string, subject string, message *gomail.Message) {
 	message.SetHeader("From", os.Getenv("MAILER_USERNAME"))
 	message.SetHeader("To", removePlus(to))
 	message.SetHeader("Subject", subject)

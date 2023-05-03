@@ -18,18 +18,18 @@ var policies = map[string]map[string][]string{
 	},
 }
 
-type PolicyInterface interface {
+type Policy interface {
 	Authorize(c *fiber.Ctx, subject string, action string) bool
 	Export(c *fiber.Ctx) []map[string]string
 }
 
-type Policy struct{}
+type policy struct{}
 
-func NewPolicy() PolicyInterface {
-	return &Policy{}
+func newPolicy() Policy {
+	return &policy{}
 }
 
-func (p *Policy) Authorize(c *fiber.Ctx, subject string, action string) bool {
+func (p *policy) Authorize(c *fiber.Ctx, subject string, action string) bool {
 	user := c.Locals("user").(model.User)
 
 	policySubject, ok := policies[subject]
@@ -50,7 +50,7 @@ type PolicyType struct {
 	Action  string `json:"action"`
 }
 
-func (p *Policy) Export(c *fiber.Ctx) []map[string]string {
+func (p *policy) Export(c *fiber.Ctx) []map[string]string {
 	user := c.Locals("user").(model.User)
 	result := []map[string]string{}
 
