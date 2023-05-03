@@ -9,6 +9,8 @@ type Leave struct {
 	StartDate   time.Time
 	EndDate     time.Time
 	LeaveType   string
+	UserID      uint
+	User        User      `gorm:"foreignKey:UserID"`
 	CreatedAt   time.Time `gorm:"autoCreateTime"`
 	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
 }
