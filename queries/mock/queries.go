@@ -65,6 +65,21 @@ func (mr *MockQueriesMockRecorder) CreateLeave(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateLeave", reflect.TypeOf((*MockQueries)(nil).CreateLeave), arg0)
 }
 
+// CreateLeaveType mocks base method.
+func (m *MockQueries) CreateLeaveType(arg0 queries.CreateLeaveTypeArgs) (model.LeaveType, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateLeaveType", arg0)
+	ret0, _ := ret[0].(model.LeaveType)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateLeaveType indicates an expected call of CreateLeaveType.
+func (mr *MockQueriesMockRecorder) CreateLeaveType(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateLeaveType", reflect.TypeOf((*MockQueries)(nil).CreateLeaveType), arg0)
+}
+
 // CreateUser mocks base method.
 func (m *MockQueries) CreateUser(arg0 queries.CreateUserArgs) (model.User, error) {
 	m.ctrl.T.Helper()
@@ -154,11 +169,26 @@ func (mr *MockQueriesMockRecorder) FindUserByID(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserByID", reflect.TypeOf((*MockQueries)(nil).FindUserByID), arg0)
 }
 
+// FindUserLeaveTypeByName mocks base method.
+func (m *MockQueries) FindUserLeaveTypeByName(arg0 model.User, arg1 string) (model.LeaveType, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindUserLeaveTypeByName", arg0, arg1)
+	ret0, _ := ret[0].(model.LeaveType)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindUserLeaveTypeByName indicates an expected call of FindUserLeaveTypeByName.
+func (mr *MockQueriesMockRecorder) FindUserLeaveTypeByName(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserLeaveTypeByName", reflect.TypeOf((*MockQueries)(nil).FindUserLeaveTypeByName), arg0, arg1)
+}
+
 // GetLeaves mocks base method.
-func (m *MockQueries) GetLeaves(arg0 *model.User) []queries.LeaveType {
+func (m *MockQueries) GetLeaves(arg0 *model.User) []queries.LeaveStruct {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetLeaves", arg0)
-	ret0, _ := ret[0].([]queries.LeaveType)
+	ret0, _ := ret[0].([]queries.LeaveStruct)
 	return ret0
 }
 

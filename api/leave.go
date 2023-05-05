@@ -9,19 +9,19 @@ import (
 	"github.com/kanatsanan6/hrm/utils"
 )
 
-type LeaveType struct {
-	ID          uint      `json:"id"`
-	Description string    `json:"description"`
-	Status      string    `json:"status"`
-	StartDate   time.Time `json:"start_date"`
-	EndDate     time.Time `json:"end_date"`
-	LeaveType   string    `json:"leave_type"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+type LeaveStruct struct {
+	ID          uint            `json:"id"`
+	Description string          `json:"description"`
+	Status      string          `json:"status"`
+	StartDate   time.Time       `json:"start_date"`
+	EndDate     time.Time       `json:"end_date"`
+	LeaveType   model.LeaveType `json:"leave_type"`
+	CreatedAt   time.Time       `json:"created_at"`
+	UpdatedAt   time.Time       `json:"updated_at"`
 }
 
-func leaveResponse(leave model.Leave) LeaveType {
-	return LeaveType{
+func leaveResponse(leave model.Leave) LeaveStruct {
+	return LeaveStruct{
 		ID:          leave.ID,
 		Description: leave.Description,
 		LeaveType:   leave.LeaveType,
@@ -61,12 +61,17 @@ func (s *Server) createLeave(c *fiber.Ctx) error {
 	}
 
 	user := c.Locals("user").(model.User)
+	leaveType, err := s.Queries.FindUserLeaveTypeByName(user, body.LeaveType)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusNotFound, "leave_type not found")
+	}
+
 	leave, err := s.Queries.CreateLeave(queries.CreateLeaveArgs{
 		Description: body.Description,
 		Status:      "pending",
 		StartDate:   startDate,
 		EndDate:     endDate,
-		LeaveType:   body.LeaveType,
+		LeaveTypeID: leaveType.ID,
 		UserID:      user.ID,
 	})
 	if err != nil {

@@ -6,15 +6,15 @@ import (
 	"github.com/kanatsanan6/hrm/model"
 )
 
-type LeaveType struct {
-	ID          uint      `json:"id"`
-	Description string    `json:"description"`
-	Status      string    `json:"status"`
-	StartDate   time.Time `json:"start_date"`
-	EndDate     time.Time `json:"end_date"`
-	LeaveType   string    `json:"leave_type"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+type LeaveStruct struct {
+	ID          uint            `json:"id"`
+	Description string          `json:"description"`
+	Status      string          `json:"status"`
+	StartDate   time.Time       `json:"start_date"`
+	EndDate     time.Time       `json:"end_date"`
+	LeaveType   model.LeaveType `json:"leave_type"`
+	CreatedAt   time.Time       `json:"created_at"`
+	UpdatedAt   time.Time       `json:"updated_at"`
 }
 
 type CreateLeaveArgs struct {
@@ -23,7 +23,7 @@ type CreateLeaveArgs struct {
 	StartDate   time.Time
 	EndDate     time.Time
 	UserID      uint
-	LeaveType   string
+	LeaveTypeID uint
 }
 
 func (q *SQLQueries) CreateLeave(args CreateLeaveArgs) (model.Leave, error) {
@@ -32,7 +32,7 @@ func (q *SQLQueries) CreateLeave(args CreateLeaveArgs) (model.Leave, error) {
 		Status:      args.Status,
 		StartDate:   args.StartDate,
 		EndDate:     args.EndDate,
-		LeaveType:   args.LeaveType,
+		LeaveTypeID: args.LeaveTypeID,
 		UserID:      args.UserID,
 	}
 
@@ -42,10 +42,10 @@ func (q *SQLQueries) CreateLeave(args CreateLeaveArgs) (model.Leave, error) {
 	return leave, nil
 }
 
-func (q *SQLQueries) GetLeaves(user *model.User) []LeaveType {
-	leaves := []LeaveType{}
+func (q *SQLQueries) GetLeaves(user *model.User) []LeaveStruct {
+	leaves := []LeaveStruct{}
 	for _, leave := range user.Leaves {
-		leaves = append(leaves, LeaveType{
+		leaves = append(leaves, LeaveStruct{
 			ID:          leave.ID,
 			Description: leave.Description,
 			LeaveType:   leave.LeaveType,
