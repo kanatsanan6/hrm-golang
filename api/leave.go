@@ -83,6 +83,9 @@ func (s *Server) createLeave(c *fiber.Ctx) error {
 
 func (s *Server) getLeaves(c *fiber.Ctx) error {
 	user := c.Locals("user").(model.User)
-	leaves := s.Queries.GetLeaves(&user)
+	leaves, err := s.Queries.GetLeaves(&user)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
+	}
 	return utils.JsonResponse(c, fiber.StatusOK, leaves)
 }

@@ -185,11 +185,12 @@ func (mr *MockQueriesMockRecorder) FindUserLeaveTypeByName(arg0, arg1 interface{
 }
 
 // GetLeaves mocks base method.
-func (m *MockQueries) GetLeaves(arg0 *model.User) []queries.LeaveStruct {
+func (m *MockQueries) GetLeaves(arg0 *model.User) ([]queries.LeaveStruct, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetLeaves", arg0)
 	ret0, _ := ret[0].([]queries.LeaveStruct)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetLeaves indicates an expected call of GetLeaves.

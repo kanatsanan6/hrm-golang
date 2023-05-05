@@ -179,7 +179,7 @@ func TestServer_getLeaves(t *testing.T) {
 		Status:      "pending",
 		StartDate:   time.Date(2023, 01, 01, 0, 0, 0, 0, time.UTC),
 		EndDate:     time.Date(2023, 01, 02, 0, 0, 0, 0, time.UTC),
-		LeaveType:   model.LeaveType{Name: "vacation_leave"},
+		LeaveType:   queries.LeaveType{Name: "vacation_leave"},
 		CreatedAt:   time.Date(2023, 01, 01, 0, 0, 0, 0, time.UTC),
 		UpdatedAt:   time.Date(2023, 01, 01, 0, 0, 0, 0, time.UTC),
 	}
@@ -189,7 +189,7 @@ func TestServer_getLeaves(t *testing.T) {
 		Status:      "pending",
 		StartDate:   time.Date(2023, 01, 01, 0, 0, 0, 0, time.UTC),
 		EndDate:     time.Date(2023, 01, 02, 0, 0, 0, 0, time.UTC),
-		LeaveType:   model.LeaveType{Name: "vacation_leave"},
+		LeaveType:   queries.LeaveType{Name: "vacation_leave"},
 		CreatedAt:   time.Date(2023, 01, 01, 0, 0, 0, 0, time.UTC),
 		UpdatedAt:   time.Date(2023, 01, 01, 0, 0, 0, 0, time.UTC),
 	}
@@ -217,7 +217,7 @@ func TestServer_getLeaves(t *testing.T) {
 				q.EXPECT().
 					GetLeaves(gomock.Any()).
 					Times(1).
-					Return([]queries.LeaveStruct{leave1, leave2})
+					Return([]queries.LeaveStruct{leave1, leave2}, nil)
 			},
 			checkResponse: func(t *testing.T, res *http.Response) {
 				var result struct {
