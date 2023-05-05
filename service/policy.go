@@ -12,7 +12,7 @@ var policies = map[string]map[string][]string{
 		"delete": {"admin"},
 	},
 	"leave": {
-		"read":    {"admin"},
+		"read":    {"admin", "member"},
 		"create":  {"admin", "member"},
 		"approve": {"admin"},
 	},

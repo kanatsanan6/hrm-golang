@@ -12,6 +12,7 @@ type LeaveStruct struct {
 	Status      string    `json:"status"`
 	StartDate   time.Time `json:"start_date"`
 	EndDate     time.Time `json:"end_date"`
+	User        *UserType `json:"user_id"`
 	LeaveType   LeaveType `json:"leave_type"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`

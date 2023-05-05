@@ -199,6 +199,21 @@ func (mr *MockQueriesMockRecorder) GetLeaves(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLeaves", reflect.TypeOf((*MockQueries)(nil).GetLeaves), arg0)
 }
 
+// GetTeamLeaves mocks base method.
+func (m *MockQueries) GetTeamLeaves(arg0 *model.Company) ([]queries.LeaveStruct, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTeamLeaves", arg0)
+	ret0, _ := ret[0].([]queries.LeaveStruct)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTeamLeaves indicates an expected call of GetTeamLeaves.
+func (mr *MockQueriesMockRecorder) GetTeamLeaves(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTeamLeaves", reflect.TypeOf((*MockQueries)(nil).GetTeamLeaves), arg0)
+}
+
 // GetUserLeaveTypes mocks base method.
 func (m *MockQueries) GetUserLeaveTypes(arg0 model.User) []queries.LeaveType {
 	m.ctrl.T.Helper()

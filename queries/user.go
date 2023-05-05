@@ -1,8 +1,21 @@
 package queries
 
 import (
+	"time"
+
 	"github.com/kanatsanan6/hrm/model"
 )
+
+type UserType struct {
+	ID        uint      `json:"id"`
+	Email     string    `json:"email"`
+	FirstName string    `json:"first_name"`
+	LastName  string    `json:"last_name"`
+	Role      string    `json:"role"`
+	CompanyID *uint     `json:"company_id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
 
 type CreateUserArgs struct {
 	Email             string

@@ -66,9 +66,16 @@ func (s *Server) createLeave(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusNotFound, "leave_type not found")
 	}
 
+	var status string
+	if user.Role == "admin" {
+		status = "approved"
+	} else {
+		status = "pending"
+	}
+
 	leave, err := s.Queries.CreateLeave(queries.CreateLeaveArgs{
 		Description: body.Description,
-		Status:      "pending",
+		Status:      status,
 		StartDate:   startDate,
 		EndDate:     endDate,
 		LeaveTypeID: leaveType.ID,

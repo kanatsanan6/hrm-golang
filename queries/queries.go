@@ -21,6 +21,7 @@ type Queries interface {
 	CreateLeaveType(args CreateLeaveTypeArgs) (model.LeaveType, error)
 	FindUserLeaveTypeByName(user model.User, name string) (model.LeaveType, error)
 	GetUserLeaveTypes(user model.User) []LeaveType
+	GetTeamLeaves(company *model.Company) ([]LeaveStruct, error)
 }
 
 type SQLQueries struct {
