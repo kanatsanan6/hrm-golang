@@ -1,7 +1,6 @@
 package queries_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/kanatsanan6/hrm/model"
@@ -48,7 +47,7 @@ func TestQueries_FindUserLeaveTypeByName(t *testing.T) {
 	assert.NoError(t, err)
 
 	result, err := testQueries.FindUserLeaveTypeByName(*user, leaveType.Name)
-	fmt.Println(result)
 	assert.NoError(t, err)
-	assert.Equal(t, result.ID, leaveType.ID)
+	assert.Equal(t, result.Name, leaveType.Name)
+	assert.Equal(t, result.UserID, leaveType.UserID)
 }
