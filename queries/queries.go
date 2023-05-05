@@ -20,6 +20,7 @@ type Queries interface {
 	GetLeaves(user *model.User) ([]LeaveStruct, error)
 	CreateLeaveType(args CreateLeaveTypeArgs) (model.LeaveType, error)
 	FindUserLeaveTypeByName(user model.User, name string) (model.LeaveType, error)
+	GetUserLeaveTypes(user model.User) []LeaveType
 }
 
 type SQLQueries struct {

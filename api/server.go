@@ -52,6 +52,8 @@ func (s *Server) setupRouter() {
 	company.Get("/leaves", s.getLeaves)
 	company.Post("/leaves", s.createLeave)
 
+	company.Get("/leave_types", s.getLeaveTypes)
+
 	s.Router = app
 }
 

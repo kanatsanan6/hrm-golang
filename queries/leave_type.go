@@ -43,3 +43,18 @@ func (q *SQLQueries) FindUserLeaveTypeByName(user model.User, name string) (mode
 	}
 	return leaveType, nil
 }
+
+func (q *SQLQueries) GetUserLeaveTypes(user model.User) []LeaveType {
+	var result []LeaveType
+	for _, leaveType := range user.LeaveTypes {
+		result = append(result, LeaveType{
+			ID:        leaveType.ID,
+			Name:      leaveType.Name,
+			Usage:     leaveType.Max - leaveType.Usage,
+			Max:       leaveType.Max,
+			CreatedAt: leaveType.CreatedAt,
+			UpdatedAt: leaveType.UpdatedAt,
+		})
+	}
+	return result
+}

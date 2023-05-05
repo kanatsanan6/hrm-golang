@@ -51,3 +51,10 @@ func TestQueries_FindUserLeaveTypeByName(t *testing.T) {
 	assert.Equal(t, result.Name, leaveType.Name)
 	assert.Equal(t, result.UserID, leaveType.UserID)
 }
+
+func TestQueries_GetUserLeaveTypes(t *testing.T) {
+	user := GenerateUser()
+	preloadedUser, _ := testQueries.FindUserByEmail(user.Email)
+	leaveTypes := testQueries.GetUserLeaveTypes(preloadedUser)
+	assert.Equal(t, 4, len(leaveTypes))
+}

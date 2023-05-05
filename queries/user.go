@@ -49,6 +49,7 @@ func (q *SQLQueries) FindUserByEmail(email string) (model.User, error) {
 	err := q.DB.Where("Email = ?", email).
 		Preload("Company").
 		Preload("Leaves").
+		Preload("LeaveTypes").
 		First(&user).
 		Error
 
