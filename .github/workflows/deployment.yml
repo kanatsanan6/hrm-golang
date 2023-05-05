@@ -31,11 +31,25 @@ jobs:
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
 
+      - name: Set Secret
+        run: |
+          flyctl secrets set  DATABASE_HOST=${{ secrets.DATABASE_HOST }}
+          flyctl secrets set  DATABASE_NAME=${{ secrets.DATABASE_NAME }}
+          flyctl secrets set  DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
+          flyctl secrets set  DATABASE_PORT=${{ secrets.DATABASE_PORT }}
+          flyctl secrets set  DATABASE_USER=${{ secrets.DATABASE_USER }}
+          flyctl secrets set  FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+          flyctl secrets set  MAILER_HOST=${{ secrets.MAILER_HOST }}
+          flyctl secrets set  JWT_SECRET=${{ secrets.JWT_SECRET }}
+          flyctl secrets set  MAILER_PASSWORD=${{ secrets.MAILER_PASSWORD }}
+          flyctl secrets set  MAILER_PORT=${{ secrets.MAILER_PORT }}
+          flyctl secrets set  MAILER_USERNAME=${{ secrets.MAILER_USERNAME }}
+          flyctl secrets set  PORT=${{ secrets.PORT }}
+
       - name: Deploy
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-        run: |
-          flyctl deploy
+        run: flyctl deploy
 
 
     # steps:
