@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - fix/deploy
 
 jobs:
   build:
@@ -46,7 +47,7 @@ jobs:
           flyctl secrets set  MAILER_PORT=${{ secrets.MAILER_PORT }}
           flyctl secrets set  MAILER_USERNAME=${{ secrets.MAILER_USERNAME }}
           flyctl secrets set  PORT=${{ secrets.PORT }}
-          flyctl deploy --remote-only
+          flyctl deploy
 
 
     # steps:
