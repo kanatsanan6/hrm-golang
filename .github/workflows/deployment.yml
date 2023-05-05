@@ -32,6 +32,8 @@ jobs:
       - uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Set Secret
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
         run: |
           flyctl secrets set  DATABASE_HOST=${{ secrets.DATABASE_HOST }}
           flyctl secrets set  DATABASE_NAME=${{ secrets.DATABASE_NAME }}
