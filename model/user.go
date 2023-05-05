@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/kanatsanan6/hrm/utils"
@@ -32,6 +31,16 @@ func (u *User) GenerateResetPasswordToken() string {
 }
 
 func (u *User) AfterCreate(tx *gorm.DB) error {
-	fmt.Println("from callback")
+	for _, lType := range DefaultLeaveType {
+		leaveType := LeaveType{
+			Name:   lType["name"].(string),
+			Usage:  0,
+			Max:    lType["max"].(int),
+			UserID: u.ID,
+		}
+		if err := tx.Create(&leaveType).Error; err != nil {
+			return err
+		}
+	}
 	return nil
 }
