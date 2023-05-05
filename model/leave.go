@@ -8,9 +8,10 @@ type Leave struct {
 	Status      string
 	StartDate   time.Time
 	EndDate     time.Time
-	LeaveType   string
 	UserID      uint
-	User        User      `gorm:"foreignKey:UserID"`
+	User        User `gorm:"foreignKey:UserID"`
+	LeaveTypeID uint
+	LeaveType   LeaveType `gorm:"foreignKey:LeaveTypeID"`
 	CreatedAt   time.Time `gorm:"autoCreateTime"`
 	UpdatedAt   time.Time `gorm:"autoUpdateTime"`
 }
