@@ -74,7 +74,8 @@ func TestSQLQueries_GetLeaves(t *testing.T) {
 	updatedUser, err := testQueries.FindUserByEmail(user.Email)
 	assert.NoError(t, err)
 
-	result := testQueries.GetLeaves(&updatedUser)
+	result, err := testQueries.GetLeaves(&updatedUser)
+	assert.NoError(t, err)
 	assert.Equal(t, result[0].ID, leave1.ID)
 	assert.Equal(t, result[1].ID, leave2.ID)
 

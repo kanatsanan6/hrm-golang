@@ -1,6 +1,19 @@
 package queries
 
-import "github.com/kanatsanan6/hrm/model"
+import (
+	"time"
+
+	"github.com/kanatsanan6/hrm/model"
+)
+
+type LeaveType struct {
+	ID        uint      `json:"id"`
+	Name      string    `json:"name"`
+	Usage     int       `json:"usage"`
+	Max       int       `json:"max"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
 
 type CreateLeaveTypeArgs struct {
 	Name   string
