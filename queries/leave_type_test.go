@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func GenerateLeaveType() *model.LeaveType {
+func GenerateLeaveType() model.LeaveType {
 	user := GenerateUser()
 	leaveType, _ := testQueries.CreateLeaveType(queries.CreateLeaveTypeArgs{
 		Name:   utils.RandomString(10),
@@ -18,7 +18,7 @@ func GenerateLeaveType() *model.LeaveType {
 		UserID: user.ID,
 	})
 
-	return &leaveType
+	return leaveType
 }
 
 func TestSQLQueries_CreateLeaveType(t *testing.T) {
@@ -38,16 +38,44 @@ func TestSQLQueries_CreateLeaveType(t *testing.T) {
 
 func TestQueries_FindUserLeaveTypeByName(t *testing.T) {
 	user := GenerateUser()
-	leaveType, err := testQueries.CreateLeaveType(queries.CreateLeaveTypeArgs{
-		Name:   "vacation_leave",
+	leaveType, _ := testQueries.CreateLeaveType(queries.CreateLeaveTypeArgs{
+		Name:   utils.RandomString(10),
 		Usage:  0,
 		Max:    10,
 		UserID: user.ID,
 	})
-	assert.NoError(t, err)
 
-	result, err := testQueries.FindUserLeaveTypeByName(*user, leaveType.Name)
+	result, err := testQueries.FindUserLeaveTypeByName(user, leaveType.Name)
 	assert.NoError(t, err)
 	assert.Equal(t, result.Name, leaveType.Name)
 	assert.Equal(t, result.UserID, leaveType.UserID)
+}
+
+func TestQueries_GetUserLeaveTypes(t *testing.T) {
+	user := GenerateUser()
+	user2 := GenerateUser()
+	leaveType1, _ := testQueries.CreateLeaveType(queries.CreateLeaveTypeArgs{
+		Name:   utils.RandomString(10),
+		Usage:  0,
+		Max:    10,
+		UserID: user.ID,
+	})
+	leaveType2, _ := testQueries.CreateLeaveType(queries.CreateLeaveTypeArgs{
+		Name:   utils.RandomString(10),
+		Usage:  0,
+		Max:    10,
+		UserID: user.ID,
+	})
+	testQueries.CreateLeaveType(queries.CreateLeaveTypeArgs{
+		Name:   utils.RandomString(10),
+		Usage:  0,
+		Max:    10,
+		UserID: user2.ID,
+	})
+
+	leaveTypes, err := testQueries.GetUserLeaveTypes(user)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(leaveTypes))
+	assert.Equal(t, leaveType1.ID, leaveTypes[0].ID)
+	assert.Equal(t, leaveType2.ID, leaveTypes[1].ID)
 }

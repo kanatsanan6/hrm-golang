@@ -10,13 +10,11 @@ var DefaultLeaveType = []map[string]interface{}{
 }
 
 type LeaveType struct {
-	ID        uint `gorm:"primaryKey"`
-	Name      string
-	Usage     int
-	Max       int
-	UserID    uint
-	User      User `gorm:"foreignKey:UserID"`
-	Leaves    []Leave
-	CreatedAt time.Time `gorm:"autoCreateTime"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+	ID        int64     `json:"id"`
+	Name      string    `json:"name"`
+	Usage     int       `json:"usages"`
+	Max       int       `json:"max"`
+	UserID    int64     `json:"user_id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }

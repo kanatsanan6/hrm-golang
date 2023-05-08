@@ -14,7 +14,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/kanatsanan6/hrm/api"
 	"github.com/kanatsanan6/hrm/model"
-	"github.com/kanatsanan6/hrm/queries"
 	mock_queries "github.com/kanatsanan6/hrm/queries/mock"
 	mock_service "github.com/kanatsanan6/hrm/service/mock"
 	"github.com/kanatsanan6/hrm/utils"
@@ -125,7 +124,7 @@ func TestServer_createLeave(t *testing.T) {
 					Return(model.Leave{
 						Description: description,
 						Status:      "pending",
-						LeaveType:   leaveType,
+						LeaveTypeID: leaveType.ID,
 					}, nil)
 			},
 			checkResponse: func(t *testing.T, res *http.Response) {
@@ -173,23 +172,23 @@ func TestServer_createLeave(t *testing.T) {
 
 func TestServer_getLeaves(t *testing.T) {
 	user := GenerateUser(nil)
-	leave1 := queries.LeaveStruct{
+	leave1 := model.LeaveStruct{
 		ID:          1,
 		Description: utils.RandomString(10),
 		Status:      "pending",
 		StartDate:   time.Date(2023, 01, 01, 0, 0, 0, 0, time.UTC),
 		EndDate:     time.Date(2023, 01, 02, 0, 0, 0, 0, time.UTC),
-		LeaveType:   queries.LeaveType{Name: "vacation_leave"},
+		LeaveType:   model.LeaveType{Name: "vacation_leave"},
 		CreatedAt:   time.Date(2023, 01, 01, 0, 0, 0, 0, time.UTC),
 		UpdatedAt:   time.Date(2023, 01, 01, 0, 0, 0, 0, time.UTC),
 	}
-	leave2 := queries.LeaveStruct{
+	leave2 := model.LeaveStruct{
 		ID:          2,
 		Description: utils.RandomString(10),
 		Status:      "pending",
 		StartDate:   time.Date(2023, 01, 01, 0, 0, 0, 0, time.UTC),
 		EndDate:     time.Date(2023, 01, 02, 0, 0, 0, 0, time.UTC),
-		LeaveType:   queries.LeaveType{Name: "vacation_leave"},
+		LeaveType:   model.LeaveType{Name: "vacation_leave"},
 		CreatedAt:   time.Date(2023, 01, 01, 0, 0, 0, 0, time.UTC),
 		UpdatedAt:   time.Date(2023, 01, 01, 0, 0, 0, 0, time.UTC),
 	}
@@ -217,11 +216,11 @@ func TestServer_getLeaves(t *testing.T) {
 				q.EXPECT().
 					GetLeaves(gomock.Any()).
 					Times(1).
-					Return([]queries.LeaveStruct{leave1, leave2}, nil)
+					Return([]model.LeaveStruct{leave1, leave2}, nil)
 			},
 			checkResponse: func(t *testing.T, res *http.Response) {
 				var result struct {
-					Data []queries.LeaveStruct `json:"data"`
+					Data []model.LeaveStruct `json:"data"`
 				}
 				body, err := io.ReadAll(res.Body)
 				assert.NoError(t, err)

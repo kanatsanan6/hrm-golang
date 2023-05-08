@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/kanatsanan6/hrm/model"
@@ -14,19 +13,8 @@ import (
 	"github.com/sethvargo/go-password/password"
 )
 
-type UserType struct {
-	ID        uint      `json:"id"`
-	Email     string    `json:"email"`
-	FirstName string    `json:"first_name"`
-	LastName  string    `json:"last_name"`
-	Role      string    `json:"role"`
-	CompanyID *uint     `json:"company_id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-}
-
-func userResponse(user model.User) UserType {
-	return UserType{
+func userResponse(user model.User) model.User {
+	return model.User{
 		ID:        user.ID,
 		Email:     user.Email,
 		FirstName: user.FirstName,
@@ -76,6 +64,18 @@ func (s *Server) signUp(c *fiber.Ctx) error {
 	})
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
+	}
+
+	for _, lType := range model.DefaultLeaveType {
+		_, err := s.Queries.CreateLeaveType(queries.CreateLeaveTypeArgs{
+			Name:   lType["name"].(string),
+			Usage:  0,
+			Max:    lType["max"].(int),
+			UserID: user.ID,
+		})
+		if err != nil {
+			return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
+		}
 	}
 
 	return utils.JsonResponse(c, fiber.StatusCreated, userResponse(user))
@@ -129,7 +129,7 @@ func (s *Server) signIn(c *fiber.Ctx) error {
 }
 
 type MeType struct {
-	User   UserType             `json:"user"`
+	User   model.User           `json:"user"`
 	Policy []service.PolicyType `json:"policy"`
 }
 
@@ -204,7 +204,11 @@ func (s *Server) inviteUser(c *fiber.Ctx) error {
 	}
 
 	token := user.GenerateResetPasswordToken()
-	if err := s.Queries.UpdateUserForgetPasswordToken(user, token); err != nil {
+	_, err = s.Queries.UpdateUser(queries.UpdateUserArgs{
+		ID:                 user.ID,
+		ResetPasswordToken: &token,
+	})
+	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
 	}
 
@@ -237,7 +241,11 @@ func (s *Server) forgetPassword(c *fiber.Ctx) error {
 	}
 
 	token := user.GenerateResetPasswordToken()
-	if err := s.Queries.UpdateUserForgetPasswordToken(user, token); err != nil {
+	_, err = s.Queries.UpdateUser(queries.UpdateUserArgs{
+		ID:                 user.ID,
+		ResetPasswordToken: &token,
+	})
+	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
 	}
 
@@ -265,7 +273,7 @@ func (s *Server) resetPassword(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusBadRequest, err)
 	}
 
-	user, err := s.Queries.FindUserByForgetPasswordToken(body.Token)
+	user, err := s.Queries.FindUserByResetPasswordToken(body.Token)
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusUnauthorized, "unauthorized")
 	}
@@ -274,8 +282,11 @@ func (s *Server) resetPassword(c *fiber.Ctx) error {
 	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusInternalServerError, err.Error())
 	}
-
-	if err := s.Queries.UpdateUserPassword(user, hash); err != nil {
+	_, err = s.Queries.UpdateUser(queries.UpdateUserArgs{
+		ID:       user.ID,
+		Password: &hash,
+	})
+	if err != nil {
 		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
 	}
 
@@ -283,7 +294,7 @@ func (s *Server) resetPassword(c *fiber.Ctx) error {
 }
 
 type DeleteUserBody struct {
-	ID uint `json:"id" validate:"required"`
+	ID int64 `json:"id" validate:"required"`
 }
 
 func (s *Server) deleteUser(c *fiber.Ctx) error {
@@ -304,7 +315,7 @@ func (s *Server) deleteUser(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusNotFound, "user not found")
 	}
 
-	if err := s.Queries.DeleteUser(user); err != nil {
+	if err := s.Queries.DeleteUser(user.ID); err != nil {
 		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
 	}
 

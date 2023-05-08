@@ -45,12 +45,14 @@ func (s *Server) setupRouter() {
 
 	company := v1.Group("/company")
 
-	company.Post("/", s.createCompany)
 	company.Get("/users", s.getUsers)
 	company.Delete("/users/:id", s.deleteUser)
 
 	company.Get("/leaves", s.getLeaves)
 	company.Post("/leaves", s.createLeave)
+	company.Put("/leaves/:id", s.updateLeaveStatus)
+
+	company.Get("/leave_types", s.getLeaveTypes)
 
 	s.Router = app
 }
