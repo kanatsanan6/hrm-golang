@@ -53,7 +53,6 @@ func (s *Server) setupRouter() {
 	company.Put("/leaves/:id", s.updateLeaveStatus)
 
 	company.Get("/leave_types", s.getLeaveTypes)
-	company.Get("/team_leaves", s.getTeamLeave)
 
 	s.Router = app
 }

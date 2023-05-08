@@ -6,39 +6,6 @@ import (
 	"github.com/kanatsanan6/hrm/model"
 )
 
-type LeaveStruct struct {
-	ID          int64     `json:"id"`
-	Description string    `json:"description"`
-	Status      string    `json:"status"`
-	StartDate   time.Time `json:"start_date"`
-	EndDate     time.Time `json:"end_date"`
-	User        UserType  `json:"user_id"`
-	LeaveType   LeaveType `json:"leave_type"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-}
-
-func LeaveResponse(leave model.Leave) *LeaveStruct {
-	// return &LeaveStruct{
-	// 	ID:          leave.ID,
-	// 	Description: leave.Description,
-	// 	Status:      leave.Status,
-	// 	StartDate:   leave.StartDate,
-	// 	EndDate:     leave.EndDate,
-	// 	CreatedAt:   leave.CreatedAt,
-	// 	UpdatedAt:   leave.UpdatedAt,
-	// 	LeaveType: LeaveType{
-	// 		// ID:        leave.LeaveType.ID,
-	// 		Name:      leave.LeaveType.Name,
-	// 		Usage:     leave.LeaveType.Usage,
-	// 		Max:       leave.LeaveType.Max,
-	// 		CreatedAt: leave.LeaveType.CreatedAt,
-	// 		UpdatedAt: leave.LeaveType.UpdatedAt,
-	// 	},
-	// }
-	return &LeaveStruct{}
-}
-
 type CreateLeaveArgs struct {
 	Description string
 	Status      string
@@ -83,14 +50,23 @@ func (q *SQLQueries) CreateLeave(args CreateLeaveArgs) (model.Leave, error) {
 	return leave, err
 }
 
-func (q *SQLQueries) GetLeaves(user *model.User) ([]model.Leave, error) {
-	var leaves []model.Leave
-	row, err := q.DB.Query(`SELECT * FROM leaves WHERE (user_id) = ($1)`, user.ID)
+func (q *SQLQueries) GetLeaves(user *model.User) ([]model.LeaveStruct, error) {
+	var leaves []model.LeaveStruct
+	query := `
+	SELECT l.*,
+	u.* AS user,
+	lt.* AS leave_type
+	FROM leaves l
+	JOIN leave_types lt ON l.leave_type_id = lt.ID
+	JOIN users u ON l.user_id = u.ID
+	WHERE l.user_id = ($1)
+	`
+	row, err := q.DB.Query(query, user.ID)
 	if err != nil {
-		return []model.Leave{}, err
+		return []model.LeaveStruct{}, err
 	}
 	for row.Next() {
-		var leave model.Leave
+		var leave model.LeaveStruct
 		err := row.Scan(
 			&leave.ID,
 			&leave.Description,
@@ -101,9 +77,26 @@ func (q *SQLQueries) GetLeaves(user *model.User) ([]model.Leave, error) {
 			&leave.UpdatedAt,
 			&leave.UserID,
 			&leave.LeaveTypeID,
+			&leave.User.ID,
+			&leave.User.FirstName,
+			&leave.User.LastName,
+			&leave.User.Email,
+			&leave.User.EncryptedPassword,
+			&leave.User.CreatedAt,
+			&leave.User.UpdatedAt,
+			&leave.User.CompanyID,
+			&leave.User.ResetPasswordToken,
+			&leave.User.Role,
+			&leave.LeaveType.ID,
+			&leave.LeaveType.Name,
+			&leave.LeaveType.Usage,
+			&leave.LeaveType.Max,
+			&leave.LeaveType.UserID,
+			&leave.LeaveType.CreatedAt,
+			&leave.LeaveType.UpdatedAt,
 		)
 		if err != nil {
-			return []model.Leave{}, err
+			return []model.LeaveStruct{}, err
 		}
 		leaves = append(leaves, leave)
 	}

@@ -66,6 +66,18 @@ func (s *Server) signUp(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
 	}
 
+	for _, lType := range model.DefaultLeaveType {
+		_, err := s.Queries.CreateLeaveType(queries.CreateLeaveTypeArgs{
+			Name:   lType["name"].(string),
+			Usage:  0,
+			Max:    lType["max"].(int),
+			UserID: user.ID,
+		})
+		if err != nil {
+			return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
+		}
+	}
+
 	return utils.JsonResponse(c, fiber.StatusCreated, userResponse(user))
 }
 

@@ -21,7 +21,7 @@ type Queries interface {
 
 	// Leave
 	CreateLeave(args CreateLeaveArgs) (model.Leave, error)
-	GetLeaves(user *model.User) ([]model.Leave, error)
+	GetLeaves(user *model.User) ([]model.LeaveStruct, error)
 	GetLeaveByID(id int64) (model.Leave, error)
 	UpdateLeave(args UpdateLeaveArgs) (model.Leave, error)
 
@@ -29,9 +29,6 @@ type Queries interface {
 	CreateLeaveType(args CreateLeaveTypeArgs) (model.LeaveType, error)
 	FindUserLeaveTypeByName(user model.User, name string) (model.LeaveType, error)
 	GetUserLeaveTypes(user model.User) ([]model.LeaveType, error)
-
-	// Team Leave
-	GetTeamLeaves(company *model.Company) ([]LeaveStruct, error)
 }
 
 type SQLQueries struct {

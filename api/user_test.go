@@ -96,6 +96,10 @@ func TestServer_signUp(t *testing.T) {
 					CreateCompany(gomock.Any()).
 					Times(1).
 					Return(model.Company{}, nil)
+				q.EXPECT().
+					CreateLeaveType(gomock.Any()).
+					Times(4).
+					Return(model.LeaveType{}, nil)
 			},
 			checkResponse: func(t *testing.T, res *http.Response) {
 				assert.Equal(t, fiber.StatusCreated, res.StatusCode)

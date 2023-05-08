@@ -102,7 +102,7 @@ type UpdateLeaveBody struct {
 }
 
 type UpdateLeaveParam struct {
-	ID uint `json:"id" validate:"required"`
+	ID int64 `json:"id" validate:"required"`
 }
 
 func (s *Server) updateLeaveStatus(c *fiber.Ctx) error {
@@ -124,13 +124,17 @@ func (s *Server) updateLeaveStatus(c *fiber.Ctx) error {
 		return utils.ErrorResponse(c, fiber.StatusBadRequest, err)
 	}
 
-	// leave, err := s.Queries.GetLeaveByID(params.ID)
-	// if err != nil {
-	// 	return utils.ErrorResponse(c, fiber.StatusNotFound, err.Error())
-	// }
+	leave, err := s.Queries.GetLeaveByID(params.ID)
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusNotFound, err.Error())
+	}
 
-	// if err := s.Queries.UpdateLeaveStatus(&leave, body.Status); err != nil {
-	// 	return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
-	// }
+	_, err = s.Queries.UpdateLeave(queries.UpdateLeaveArgs{
+		ID:     leave.ID,
+		Status: body.Status,
+	})
+	if err != nil {
+		return utils.ErrorResponse(c, fiber.StatusUnprocessableEntity, err.Error())
+	}
 	return utils.JsonResponse(c, fiber.StatusCreated, "test")
 }
