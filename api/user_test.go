@@ -21,9 +21,9 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func GenerateUser(companyId *uint) *model.User {
+func GenerateUser(companyId *int64) *model.User {
 	return &model.User{
-		ID:                uint(utils.RandomNumber(1, 10)),
+		ID:                int64(utils.RandomNumber(1, 10)),
 		FirstName:         utils.RandomString(10),
 		LastName:          utils.RandomString(10),
 		Email:             utils.RandomEmail(),
@@ -449,8 +449,8 @@ func TestServer_inviteUser(t *testing.T) {
 					CreateUser(gomock.Any()).
 					Return(model.User{Email: email}, nil)
 				q.EXPECT().
-					UpdateUserForgetPasswordToken(gomock.Any(), gomock.Any()).
-					Return(errors.New("cannot update"))
+					UpdateUser(gomock.Any()).
+					Return(model.User{}, errors.New("cannot update"))
 			},
 			checkResponse: func(t *testing.T, res *http.Response) {
 				assert.Equal(t, fiber.StatusUnprocessableEntity, res.StatusCode)
@@ -474,8 +474,8 @@ func TestServer_inviteUser(t *testing.T) {
 					CreateUser(gomock.Any()).
 					Return(model.User{Email: email}, nil)
 				q.EXPECT().
-					UpdateUserForgetPasswordToken(gomock.Any(), gomock.Any()).
-					Return(nil)
+					UpdateUser(gomock.Any()).
+					Return(model.User{Email: email}, nil)
 				s.EXPECT().
 					Send(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(errors.New("error"))
@@ -502,8 +502,8 @@ func TestServer_inviteUser(t *testing.T) {
 					CreateUser(gomock.Any()).
 					Return(model.User{Email: email}, nil)
 				q.EXPECT().
-					UpdateUserForgetPasswordToken(gomock.Any(), gomock.Any()).
-					Return(nil)
+					UpdateUser(gomock.Any()).
+					Return(model.User{Email: email}, nil)
 				s.EXPECT().
 					Send(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(nil)
@@ -526,7 +526,7 @@ func TestServer_inviteUser(t *testing.T) {
 			server := api.NewServer(q, s)
 			c := server.Router.AcquireCtx(&fasthttp.RequestCtx{})
 
-			companyId := uint(utils.RandomNumber(1, 10))
+			companyId := int64(utils.RandomNumber(1, 10))
 			currentUser := model.User{
 				CompanyID: &companyId,
 			}
@@ -584,8 +584,8 @@ func TestServer_forgetPassword(t *testing.T) {
 					FindUserByEmail(gomock.Eq(email)).
 					Return(*user, nil)
 				q.EXPECT().
-					UpdateUserForgetPasswordToken(gomock.Eq(*user), gomock.Any()).
-					Return(errors.New("error"))
+					UpdateUser(gomock.Any()).
+					Return(model.User{}, errors.New("error"))
 			},
 			checkResponse: func(t *testing.T, res *http.Response) {
 				assert.Equal(t, fiber.StatusUnprocessableEntity, res.StatusCode)
@@ -599,8 +599,8 @@ func TestServer_forgetPassword(t *testing.T) {
 					FindUserByEmail(gomock.Eq(email)).
 					Return(*user, nil)
 				q.EXPECT().
-					UpdateUserForgetPasswordToken(gomock.Eq(*user), gomock.Any()).
-					Return(nil)
+					UpdateUser(gomock.Any()).
+					Return(*user, nil)
 				s.EXPECT().
 					Send(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(errors.New("error"))
@@ -617,8 +617,8 @@ func TestServer_forgetPassword(t *testing.T) {
 					FindUserByEmail(gomock.Eq(email)).
 					Return(*user, nil)
 				q.EXPECT().
-					UpdateUserForgetPasswordToken(gomock.Eq(*user), gomock.Any()).
-					Return(nil)
+					UpdateUser(gomock.Any()).
+					Return(*user, nil)
 				s.EXPECT().
 					Send(gomock.Any(), gomock.Any(), gomock.Any()).
 					Return(nil)
@@ -678,7 +678,7 @@ func TestServer_resetPassword(t *testing.T) {
 			body: body,
 			buildStub: func(q *mock_queries.MockQueries) {
 				q.EXPECT().
-					FindUserByForgetPasswordToken(gomock.Eq(token)).
+					FindUserByResetPasswordToken(gomock.Eq(token)).
 					Return(model.User{}, errors.New("error"))
 			},
 			checkResponse: func(t *testing.T, res *http.Response) {
@@ -690,11 +690,11 @@ func TestServer_resetPassword(t *testing.T) {
 			body: body,
 			buildStub: func(q *mock_queries.MockQueries) {
 				q.EXPECT().
-					FindUserByForgetPasswordToken(gomock.Eq(token)).
+					FindUserByResetPasswordToken(gomock.Eq(token)).
 					Return(*user, nil)
 				q.EXPECT().
-					UpdateUserPassword(*user, gomock.Any()).
-					Return(errors.New("error"))
+					UpdateUser(gomock.Any()).
+					Return(model.User{}, errors.New("error"))
 			},
 			checkResponse: func(t *testing.T, res *http.Response) {
 				assert.Equal(t, fiber.StatusUnprocessableEntity, res.StatusCode)
@@ -705,11 +705,11 @@ func TestServer_resetPassword(t *testing.T) {
 			body: body,
 			buildStub: func(q *mock_queries.MockQueries) {
 				q.EXPECT().
-					FindUserByForgetPasswordToken(gomock.Eq(token)).
+					FindUserByResetPasswordToken(gomock.Eq(token)).
 					Return(*user, nil)
 				q.EXPECT().
-					UpdateUserPassword(*user, gomock.Any()).
-					Return(nil)
+					UpdateUser(gomock.Any()).
+					Return(*user, nil)
 			},
 			checkResponse: func(t *testing.T, res *http.Response) {
 				assert.Equal(t, fiber.StatusOK, res.StatusCode)
@@ -787,7 +787,7 @@ func TestServer_deleteUser(t *testing.T) {
 					Authorize(gomock.Any(), "user_management", "delete").
 					Return(true)
 				q.EXPECT().
-					FindUserByID(gomock.Eq(id)).
+					FindUserByID(gomock.Eq(int64(id))).
 					Return(model.User{}, errors.New("error"))
 			},
 			checkResponse: func(t *testing.T, res *http.Response) {
@@ -805,10 +805,10 @@ func TestServer_deleteUser(t *testing.T) {
 					Authorize(gomock.Any(), "user_management", "delete").
 					Return(true)
 				q.EXPECT().
-					FindUserByID(gomock.Eq(id)).
+					FindUserByID(gomock.Eq(int64(id))).
 					Return(*user, nil)
 				q.EXPECT().
-					DeleteUser(*user).
+					DeleteUser(gomock.Eq(int64(user.ID))).
 					Return(errors.New("errors"))
 			},
 			checkResponse: func(t *testing.T, res *http.Response) {
@@ -826,10 +826,10 @@ func TestServer_deleteUser(t *testing.T) {
 					Authorize(gomock.Any(), "user_management", "delete").
 					Return(true)
 				q.EXPECT().
-					FindUserByID(gomock.Eq(id)).
+					FindUserByID(gomock.Eq(int64(id))).
 					Return(*user, nil)
 				q.EXPECT().
-					DeleteUser(*user).
+					DeleteUser(gomock.Eq(int64(user.ID))).
 					Return(nil)
 			},
 			checkResponse: func(t *testing.T, res *http.Response) {

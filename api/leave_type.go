@@ -8,6 +8,6 @@ import (
 
 func (s *Server) getLeaveTypes(c *fiber.Ctx) error {
 	user := c.Locals("user").(model.User)
-	leaveType := s.Queries.GetUserLeaveTypes(user)
+	leaveType, _ := s.Queries.GetUserLeaveTypes(user)
 	return utils.JsonResponse(c, fiber.StatusOK, leaveType)
 }

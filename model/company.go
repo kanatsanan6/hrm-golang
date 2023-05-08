@@ -3,9 +3,8 @@ package model
 import "time"
 
 type Company struct {
-	ID        uint `gorm:"primaryKey"`
-	Name      string
-	Users     []User
-	CreatedAt time.Time `gorm:"autoCreateTime"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+	ID        int64     `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }

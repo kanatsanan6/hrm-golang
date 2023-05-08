@@ -96,7 +96,7 @@ func (mr *MockQueriesMockRecorder) CreateUser(arg0 interface{}) *gomock.Call {
 }
 
 // DeleteUser mocks base method.
-func (m *MockQueries) DeleteUser(arg0 model.User) error {
+func (m *MockQueries) DeleteUser(arg0 int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteUser", arg0)
 	ret0, _ := ret[0].(error)
@@ -110,7 +110,7 @@ func (mr *MockQueriesMockRecorder) DeleteUser(arg0 interface{}) *gomock.Call {
 }
 
 // FindCompanyByID mocks base method.
-func (m *MockQueries) FindCompanyByID(arg0 uint) (model.Company, error) {
+func (m *MockQueries) FindCompanyByID(arg0 int64) (model.Company, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindCompanyByID", arg0)
 	ret0, _ := ret[0].(model.Company)
@@ -139,23 +139,8 @@ func (mr *MockQueriesMockRecorder) FindUserByEmail(arg0 interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserByEmail", reflect.TypeOf((*MockQueries)(nil).FindUserByEmail), arg0)
 }
 
-// FindUserByForgetPasswordToken mocks base method.
-func (m *MockQueries) FindUserByForgetPasswordToken(arg0 string) (model.User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindUserByForgetPasswordToken", arg0)
-	ret0, _ := ret[0].(model.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FindUserByForgetPasswordToken indicates an expected call of FindUserByForgetPasswordToken.
-func (mr *MockQueriesMockRecorder) FindUserByForgetPasswordToken(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserByForgetPasswordToken", reflect.TypeOf((*MockQueries)(nil).FindUserByForgetPasswordToken), arg0)
-}
-
 // FindUserByID mocks base method.
-func (m *MockQueries) FindUserByID(arg0 uint) (model.User, error) {
+func (m *MockQueries) FindUserByID(arg0 int64) (model.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindUserByID", arg0)
 	ret0, _ := ret[0].(model.User)
@@ -167,6 +152,21 @@ func (m *MockQueries) FindUserByID(arg0 uint) (model.User, error) {
 func (mr *MockQueriesMockRecorder) FindUserByID(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserByID", reflect.TypeOf((*MockQueries)(nil).FindUserByID), arg0)
+}
+
+// FindUserByResetPasswordToken mocks base method.
+func (m *MockQueries) FindUserByResetPasswordToken(arg0 string) (model.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindUserByResetPasswordToken", arg0)
+	ret0, _ := ret[0].(model.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindUserByResetPasswordToken indicates an expected call of FindUserByResetPasswordToken.
+func (mr *MockQueriesMockRecorder) FindUserByResetPasswordToken(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserByResetPasswordToken", reflect.TypeOf((*MockQueries)(nil).FindUserByResetPasswordToken), arg0)
 }
 
 // FindUserLeaveTypeByName mocks base method.
@@ -184,11 +184,26 @@ func (mr *MockQueriesMockRecorder) FindUserLeaveTypeByName(arg0, arg1 interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindUserLeaveTypeByName", reflect.TypeOf((*MockQueries)(nil).FindUserLeaveTypeByName), arg0, arg1)
 }
 
+// GetLeaveByID mocks base method.
+func (m *MockQueries) GetLeaveByID(arg0 int64) (model.Leave, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLeaveByID", arg0)
+	ret0, _ := ret[0].(model.Leave)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLeaveByID indicates an expected call of GetLeaveByID.
+func (mr *MockQueriesMockRecorder) GetLeaveByID(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLeaveByID", reflect.TypeOf((*MockQueries)(nil).GetLeaveByID), arg0)
+}
+
 // GetLeaves mocks base method.
-func (m *MockQueries) GetLeaves(arg0 *model.User) ([]queries.LeaveStruct, error) {
+func (m *MockQueries) GetLeaves(arg0 *model.User) ([]model.Leave, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetLeaves", arg0)
-	ret0, _ := ret[0].([]queries.LeaveStruct)
+	ret0, _ := ret[0].([]model.Leave)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -215,11 +230,12 @@ func (mr *MockQueriesMockRecorder) GetTeamLeaves(arg0 interface{}) *gomock.Call 
 }
 
 // GetUserLeaveTypes mocks base method.
-func (m *MockQueries) GetUserLeaveTypes(arg0 model.User) []queries.LeaveType {
+func (m *MockQueries) GetUserLeaveTypes(arg0 model.User) ([]model.LeaveType, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserLeaveTypes", arg0)
-	ret0, _ := ret[0].([]queries.LeaveType)
-	return ret0
+	ret0, _ := ret[0].([]model.LeaveType)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetUserLeaveTypes indicates an expected call of GetUserLeaveTypes.
@@ -228,44 +244,47 @@ func (mr *MockQueriesMockRecorder) GetUserLeaveTypes(arg0 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserLeaveTypes", reflect.TypeOf((*MockQueries)(nil).GetUserLeaveTypes), arg0)
 }
 
-// UpdateUserCompanyID mocks base method.
-func (m *MockQueries) UpdateUserCompanyID(arg0 model.User, arg1 uint) error {
+// GetUsers mocks base method.
+func (m *MockQueries) GetUsers(arg0 int64) ([]model.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUserCompanyID", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "GetUsers", arg0)
+	ret0, _ := ret[0].([]model.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// UpdateUserCompanyID indicates an expected call of UpdateUserCompanyID.
-func (mr *MockQueriesMockRecorder) UpdateUserCompanyID(arg0, arg1 interface{}) *gomock.Call {
+// GetUsers indicates an expected call of GetUsers.
+func (mr *MockQueriesMockRecorder) GetUsers(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserCompanyID", reflect.TypeOf((*MockQueries)(nil).UpdateUserCompanyID), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsers", reflect.TypeOf((*MockQueries)(nil).GetUsers), arg0)
 }
 
-// UpdateUserForgetPasswordToken mocks base method.
-func (m *MockQueries) UpdateUserForgetPasswordToken(arg0 model.User, arg1 string) error {
+// UpdateLeave mocks base method.
+func (m *MockQueries) UpdateLeave(arg0 queries.UpdateLeaveArgs) (model.Leave, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUserForgetPasswordToken", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "UpdateLeave", arg0)
+	ret0, _ := ret[0].(model.Leave)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// UpdateUserForgetPasswordToken indicates an expected call of UpdateUserForgetPasswordToken.
-func (mr *MockQueriesMockRecorder) UpdateUserForgetPasswordToken(arg0, arg1 interface{}) *gomock.Call {
+// UpdateLeave indicates an expected call of UpdateLeave.
+func (mr *MockQueriesMockRecorder) UpdateLeave(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserForgetPasswordToken", reflect.TypeOf((*MockQueries)(nil).UpdateUserForgetPasswordToken), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateLeave", reflect.TypeOf((*MockQueries)(nil).UpdateLeave), arg0)
 }
 
-// UpdateUserPassword mocks base method.
-func (m *MockQueries) UpdateUserPassword(arg0 model.User, arg1 string) error {
+// UpdateUser mocks base method.
+func (m *MockQueries) UpdateUser(arg0 queries.UpdateUserArgs) (model.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateUserPassword", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "UpdateUser", arg0)
+	ret0, _ := ret[0].(model.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// UpdateUserPassword indicates an expected call of UpdateUserPassword.
-func (mr *MockQueriesMockRecorder) UpdateUserPassword(arg0, arg1 interface{}) *gomock.Call {
+// UpdateUser indicates an expected call of UpdateUser.
+func (mr *MockQueriesMockRecorder) UpdateUser(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserPassword", reflect.TypeOf((*MockQueries)(nil).UpdateUserPassword), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockQueries)(nil).UpdateUser), arg0)
 }

@@ -145,7 +145,7 @@ func TestMeMiddleware(t *testing.T) {
 			},
 			checkResponse: func(t *testing.T, res *http.Response) {
 				var result struct {
-					Data api.UserType `json:"data"`
+					Data model.User `json:"data"`
 				}
 				body, err := io.ReadAll(res.Body)
 				assert.NoError(t, err)

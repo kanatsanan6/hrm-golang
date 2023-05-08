@@ -125,7 +125,7 @@ func TestServer_createLeave(t *testing.T) {
 					Return(model.Leave{
 						Description: description,
 						Status:      "pending",
-						LeaveType:   leaveType,
+						LeaveTypeID: leaveType.ID,
 					}, nil)
 			},
 			checkResponse: func(t *testing.T, res *http.Response) {

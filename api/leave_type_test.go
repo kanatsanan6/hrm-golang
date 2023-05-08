@@ -8,7 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang/mock/gomock"
 	"github.com/kanatsanan6/hrm/api"
-	"github.com/kanatsanan6/hrm/queries"
+	"github.com/kanatsanan6/hrm/model"
 	mock_queries "github.com/kanatsanan6/hrm/queries/mock"
 	mock_service "github.com/kanatsanan6/hrm/service/mock"
 	"github.com/stretchr/testify/assert"
@@ -41,7 +41,7 @@ func TestServer_getLeaveTypes(t *testing.T) {
 				MockMe(q, *user, email)
 				q.EXPECT().
 					GetUserLeaveTypes(gomock.Any()).
-					Return([]queries.LeaveType{{ID: 1}, {ID: 2}})
+					Return([]model.LeaveType{{ID: 1}, {ID: 2}}, nil)
 			},
 			checkResponse: func(t *testing.T, res *http.Response) {
 				assert.Equal(t, fiber.StatusOK, res.StatusCode)

@@ -1,6 +1,7 @@
 package queries_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/kanatsanan6/hrm/queries"
@@ -61,6 +62,7 @@ func TestSQLQueries_GetTeamLeaves(t *testing.T) {
 	})
 
 	result, err := testQueries.GetTeamLeaves(&company)
+	fmt.Println(result)
 	assert.NoError(t, err)
 	assert.Equal(t, adminLeave.ID, result[0].ID)
 	assert.Equal(t, memberLeave.ID, result[1].ID)
